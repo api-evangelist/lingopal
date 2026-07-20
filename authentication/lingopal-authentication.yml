@@ -1,0 +1,41 @@
+generated: '2026-07-19'
+method: searched
+source: openapi/lingopal-openapi-original.json
+docs: https://docs.lingopal.ai/guides/authentication
+summary:
+  types:
+  - apiKey
+  api_key_in:
+  - header
+  oauth2_flows: []
+  bearer_tokens: false
+schemes:
+- name: APIKeyHeader
+  type: apiKey
+  in: header
+  parameter: X-API-Key
+  applied: global
+  sources:
+  - openapi/lingopal-openapi-original.json
+  docs: https://docs.lingopal.ai/guides/authentication
+key_management:
+  issue: Lingopal dashboard (https://app.lingopal.ai/login) or account contact
+  rotate: Lingopal dashboard or account contact
+  revoke: Lingopal dashboard or account contact
+  environment_separation: >-
+    The docs recommend separate keys for development and production "when available";
+    no test-vs-live key prefix or sandbox mode is published.
+guidance:
+- Store the key server-side in an environment variable (documented as LINGOPAL_API_KEY).
+- Never commit a key or place it in browser-side code.
+- Keep .env files out of version control.
+- Rotate a key immediately if it is exposed.
+- Do not attach X-API-Key to presigned storage upload URLs returned by createStorageUpload.
+failure_mode:
+  status: 401
+  meaning: >-
+    Header missing or key invalid. Confirm the header name is exactly X-API-Key, that
+    the environment variable is populated, and that the key has not been revoked.
+notes: >-
+  There is no OAuth, OIDC, mTLS, or scope surface on this API, so no scopes/ artifact
+  is emitted. Key auth with no scopes is the whole authorization model.
