@@ -1,0 +1,154 @@
+openapi: 3.1.0
+info:
+  title: Lingopal API v2 Jobs Translate API
+  description: Lingopal API for uploading media and documents, starting translation workflows, generating subtitles, translating text, and downloading generated artifacts.
+  version: v2
+servers:
+- url: https://vod-api.lingopal-dev.com
+security:
+- APIKeyHeader: []
+tags:
+- name: Translate
+  description: Start media, document, subtitle, and text translation workflows.
+paths:
+  /v2/translate/text:
+    post:
+      tags:
+      - Translate
+      summary: Translate text
+      description: Translates one to 100 text inputs with a shared target language and optional context. Use `GET /v2/languages/text` to list supported languages.
+      operationId: translateText
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranslateTextRequest'
+            examples:
+              translateTextMinimal:
+                summary: Translate text minimal
+                description: Translate text with only the required text inputs and target language.
+                value:
+                  texts:
+                  - Hello world
+                  - Welcome to Lingopal
+                  target_language: es
+              translateTextWithOptions:
+                summary: Translate text options
+                description: Translate text with optional source language, context, and credit deduction control.
+                value:
+                  texts:
+                  - Hello world
+                  - Welcome to Lingopal
+                  source_language: en
+                  target_language: es
+                  context: Marketing landing page copy
+                  deduct_credits: true
+        required: true
+      responses:
+        '200':
+          description: Completed text translations.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextTranslationResponse'
+        '401':
+          description: Missing or invalid authentication token.
+        '422':
+          description: Request validation error.
+      security:
+      - APIKeyHeader: []
+components:
+  schemas:
+    TextTranslation:
+      properties:
+        source_text:
+          type: string
+          title: Source Text
+          description: Original source text.
+        translated_text:
+          type: string
+          title: Translated Text
+          description: Translated text.
+        target_language:
+          type: string
+          title: Target Language
+          description: Target locale code for this translation.
+      type: object
+      required:
+      - source_text
+      - translated_text
+      - target_language
+      title: TextTranslation
+    TranslateTextRequest:
+      properties:
+        texts:
+          items:
+            type: string
+          type: array
+          maxItems: 100
+          minItems: 1
+          title: Texts
+          description: 'One to 100 source text inputs to translate. Aliases accepted: `text`, `content`.'
+          examples:
+          - - Hello world
+            - Welcome to Lingopal
+        target_language:
+          type: string
+          minLength: 1
+          title: Target Language
+          description: 'Single target locale code. Use `GET /v2/languages/text` to list supported text translation languages. Alias accepted: `language`.'
+          examples:
+          - es
+        source_language:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Source Language
+          description: Optional source locale code. Use `GET /v2/languages/text` to list supported text translation languages. If omitted, Lingopal may auto-detect it.
+          examples:
+          - en
+        context:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Context
+          description: Optional context to improve translation quality.
+          examples:
+          - Marketing landing page copy
+        deduct_credits:
+          type: boolean
+          title: Deduct Credits
+          description: 'Whether this request should deduct credits. Alias accepted: `deduct_credits_flag`.'
+          default: true
+      type: object
+      required:
+      - texts
+      - target_language
+      title: TranslateTextRequest
+    TextTranslationResponse:
+      properties:
+        workflow:
+          type: string
+          const: translate_text
+          title: Workflow
+          default: translate_text
+        status:
+          type: string
+          const: completed
+          title: Status
+          default: completed
+        translations:
+          items:
+            $ref: '#/components/schemas/TextTranslation'
+          type: array
+          title: Translations
+          description: Completed text translations.
+      type: object
+      required:
+      - translations
+      title: TextTranslationResponse
+  securitySchemes:
+    APIKeyHeader:
+      in: header
+      name: X-API-Key
+      type: apiKey
