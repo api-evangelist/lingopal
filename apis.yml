@@ -1,22 +1,141 @@
 aid: lingopal
 name: Lingopal
-description: 'Lingopal is a company surfaced as a portfolio company of dcm-ventures and added to the API
-  Evangelist network as a stub for enrichment. Sector: frontier-tech. This profile is a lead awaiting
-  the enrichment pipeline.'
+description: >-
+  Lingopal is an AI translation company building a real-time language layer for live
+  and on-demand video. Its platform delivers sub-10-second AI dubbing and captioning for
+  livestreams across 100+ languages, preserving speaker characteristics through voice
+  cloning, and targets sports and news broadcasters, streaming and FAST channel
+  operators, live events, faith organizations, and contact centers. Lingopal also
+  publishes a public v2 REST API for uploading media and documents, starting translation
+  and dubbing workflows, generating subtitle tracks, translating text synchronously, and
+  downloading generated transcripts and subtitles. The API is documented at
+  docs.lingopal.ai with a machine-readable OpenAPI 3.1 specification, is authenticated
+  with an X-API-Key header, and exposes 112 locales with per-locale text, dubbing, and
+  voice-cloning capability flags.
+accessModel:
+  pricing: unknown
+  onboarding: self-serve
+  trial: false
+  try_now: false
+  public: false
+  label: Self-serve signup
+  confidence: medium
+  source:
+  - authentication
+  generated: '2026-07-22'
+  method: derived
+image: https://lingopal.ai/header_image.png
 url: https://raw.githubusercontent.com/api-evangelist/lingopal/refs/heads/main/apis.yml
 x-type: company
 x-source: vc-portfolio
 x-backed-by:
 - dcm-ventures
-x-tier: stub
-x-tier-reason: portfolio-lead
+x-tier: enriched
+x-tier-reason: public-openapi-and-docs
 specificationVersion: '0.20'
 created: '2026-07-17'
-modified: '2026-07-17'
+modified: '2026-07-19'
 tags:
 - Company
 - Frontier Tech
-apis: []
+- Artificial Intelligence
+- Translation
+- Localization
+- Speech
+- Media
+- Broadcasting
+- Video
+- Subtitles
+- Voice Cloning
+apis:
+- aid: lingopal:lingopal-jobs-api
+  name: Lingopal Jobs API
+  description: Work with reusable registered jobs, their workflows, status, and outputs.
+  humanURL: https://docs.lingopal.ai/
+  baseURL: https://api.lingopal.ai
+  tags:
+  - Jobs
+  properties:
+  - type: OpenAPI
+    url: openapi/lingopal-jobs-api-openapi.yml
+  - type: Documentation
+    url: https://docs.lingopal.ai/
+  - type: APIReference
+    url: https://docs.lingopal.ai/reference
+  - type: GettingStarted
+    url: https://docs.lingopal.ai/guides/getting-started
+  - type: Authentication
+    url: authentication/lingopal-authentication.yml
+  - type: ErrorCatalog
+    url: errors/lingopal-problem-types.yml
+  - type: DataModel
+    url: data-model/lingopal-data-model.yml
+- aid: lingopal:lingopal-languages-api
+  name: Lingopal Languages API
+  description: List supported language capabilities for dubbing, text, and other workflows.
+  humanURL: https://docs.lingopal.ai/
+  baseURL: https://api.lingopal.ai
+  tags:
+  - Languages
+  properties:
+  - type: OpenAPI
+    url: openapi/lingopal-languages-api-openapi.yml
+  - type: Documentation
+    url: https://docs.lingopal.ai/
+  - type: APIReference
+    url: https://docs.lingopal.ai/reference
+  - type: GettingStarted
+    url: https://docs.lingopal.ai/guides/getting-started
+  - type: Authentication
+    url: authentication/lingopal-authentication.yml
+  - type: ErrorCatalog
+    url: errors/lingopal-problem-types.yml
+  - type: DataModel
+    url: data-model/lingopal-data-model.yml
+- aid: lingopal:lingopal-translate-api
+  name: Lingopal Translate API
+  description: Start media, document, subtitle, and text translation workflows.
+  humanURL: https://docs.lingopal.ai/
+  baseURL: https://api.lingopal.ai
+  tags:
+  - Translate
+  properties:
+  - type: OpenAPI
+    url: openapi/lingopal-translate-api-openapi.yml
+  - type: Documentation
+    url: https://docs.lingopal.ai/
+  - type: APIReference
+    url: https://docs.lingopal.ai/reference
+  - type: GettingStarted
+    url: https://docs.lingopal.ai/guides/getting-started
+  - type: Authentication
+    url: authentication/lingopal-authentication.yml
+  - type: ErrorCatalog
+    url: errors/lingopal-problem-types.yml
+  - type: DataModel
+    url: data-model/lingopal-data-model.yml
+- aid: lingopal:lingopal-upload-api
+  name: Lingopal Upload API
+  description: Create storage uploads and register jobs for later use.
+  humanURL: https://docs.lingopal.ai/
+  baseURL: https://api.lingopal.ai
+  tags:
+  - Upload
+  properties:
+  - type: OpenAPI
+    url: openapi/lingopal-upload-api-openapi.yml
+  - type: Documentation
+    url: https://docs.lingopal.ai/
+  - type: APIReference
+    url: https://docs.lingopal.ai/reference
+  - type: GettingStarted
+    url: https://docs.lingopal.ai/guides/getting-started
+  - type: Authentication
+    url: authentication/lingopal-authentication.yml
+  - type: ErrorCatalog
+    url: errors/lingopal-problem-types.yml
+  - type: DataModel
+    url: data-model/lingopal-data-model.yml
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
@@ -25,3 +144,56 @@ maintainers:
 common:
 - type: Website
   url: https://lingopal.ai/
+- type: DeveloperPortal
+  url: https://docs.lingopal.ai/
+- type: Documentation
+  url: https://docs.lingopal.ai/
+- type: APIReference
+  url: https://docs.lingopal.ai/reference
+- type: GettingStarted
+  url: https://docs.lingopal.ai/guides/getting-started
+- type: OpenAPI
+  url: openapi/lingopal-openapi-original.json
+- type: Authentication
+  url: authentication/lingopal-authentication.yml
+- type: Conventions
+  url: conventions/lingopal-conventions.yml
+- type: ErrorCatalog
+  url: errors/lingopal-problem-types.yml
+- type: Lifecycle
+  url: lifecycle/lingopal-lifecycle.yml
+- type: DataModel
+  url: data-model/lingopal-data-model.yml
+- type: Conformance
+  url: conformance/lingopal-conformance.yml
+- type: Overlay
+  url: overlays/lingopal-v2-overlay.yaml
+- type: MCPServer
+  url: mcp/lingopal-mcp.yml
+- type: AgentSkill
+  url: skills/_index.yml
+- type: AgenticAccess
+  url: agentic-access/lingopal-agentic-access.yml
+- type: LLMsTxt
+  url: llms/lingopal-llms.txt
+- type: DomainSecurity
+  url: security/lingopal-domain-security.yml
+- type: Blog
+  url: https://lingopal.ai/blog
+- type: GitHubOrganization
+  url: https://github.com/lingopal-ai
+- type: Support
+  url: mailto:support@lingopal.ai
+- type: Pricing
+  url: https://lingopal.ai/pricing
+- type: SignUp
+  url: https://app.lingopal.ai/login
+- type: TermsOfService
+  url: https://lingopal.ai/terms
+- type: PrivacyPolicy
+  url: https://lingopal.ai/policy
+x-enrichment:
+  date: '2026-07-19'
+  status: backfilled
+  pass: local-v1
+  note: backfilled from .gitignore signal + verified work evidence
