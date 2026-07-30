@@ -1,0 +1,41 @@
+generated: '2026-07-19'
+method: probed
+source: live HTTP probes of every Lingopal host in apis.yml + OpenAPI servers[]
+result: none
+notes: >-
+  No real /.well-known/ discovery documents are published. lingopal.ai,
+  api.lingopal.ai and docs.lingopal.ai return 404 for every probed path.
+  app.lingopal.ai returns HTTP 200 for every path, but the response is the Next.js
+  SPA shell (content-type text/html) rather than the requested document — a soft 404,
+  recorded as such and not saved. No pointer is wired for this file because nothing
+  real was found.
+hosts:
+- host: https://lingopal.ai
+  documents:
+  - {path: /.well-known/security.txt, status: 404}
+  - {path: /.well-known/openid-configuration, status: 404}
+  - {path: /.well-known/oauth-authorization-server, status: 404}
+  - {path: /.well-known/api-catalog, status: 404}
+  - {path: /.well-known/ai-plugin.json, status: 404}
+- host: https://api.lingopal.ai
+  documents:
+  - {path: /.well-known/security.txt, status: 404}
+  - {path: /.well-known/openid-configuration, status: 404}
+  - {path: /.well-known/oauth-authorization-server, status: 404}
+  - {path: /.well-known/api-catalog, status: 404}
+  - {path: /.well-known/ai-plugin.json, status: 404}
+- host: https://docs.lingopal.ai
+  documents:
+  - {path: /.well-known/security.txt, status: 404}
+  - {path: /.well-known/openid-configuration, status: 404}
+  - {path: /.well-known/oauth-authorization-server, status: 404}
+  - {path: /.well-known/api-catalog, status: 404}
+  - {path: /.well-known/ai-plugin.json, status: 404}
+- host: https://app.lingopal.ai
+  soft_404: true
+  documents:
+  - {path: /.well-known/security.txt, status: 200, content_type: text/html, valid: false}
+  - {path: /.well-known/openid-configuration, status: 200, content_type: text/html, valid: false}
+  - {path: /.well-known/oauth-authorization-server, status: 200, content_type: text/html, valid: false}
+  - {path: /.well-known/api-catalog, status: 200, content_type: text/html, valid: false}
+  - {path: /.well-known/ai-plugin.json, status: 200, content_type: text/html, valid: false}

@@ -1,0 +1,24 @@
+generated: '2026-07-19'
+method: generated
+source: openapi/lingopal-openapi-original.json + https://docs.lingopal.ai/
+notes: >-
+  Packaged Agent Skills for the four marquee Lingopal API v2 flows. Every operationId
+  referenced below appears verbatim in the harvested OpenAPI. Lingopal publishes no
+  AGENTS.md or first-party skill files.
+skills:
+- file: lingopal-translate-text.md
+  name: Translate text with Lingopal
+  api: openapi/lingopal-openapi-original.json
+  operations: [listLanguages, translateText]
+- file: lingopal-translate-media.md
+  name: Translate and dub media with Lingopal
+  api: openapi/lingopal-openapi-original.json
+  operations: [listLanguages, registerJobs, uploadAndRegisterJob, translateJob, getJobStatus, getJob, downloadJobTranscript, exportJobTranscript]
+- file: lingopal-generate-subtitles.md
+  name: Generate subtitles with Lingopal
+  api: openapi/lingopal-openapi-original.json
+  operations: [listLanguages, generateJobSubtitles, getJobStatus, downloadJobSubtitle]
+- file: lingopal-upload-large-media.md
+  name: Upload large media to Lingopal
+  api: openapi/lingopal-openapi-original.json
+  operations: [createStorageUpload, completeStorageUpload, registerJobs, getJob]

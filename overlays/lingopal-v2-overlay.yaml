@@ -1,0 +1,67 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for Lingopal API v2
+  version: 1.0.0
+extends: openapi/lingopal-openapi-original.json
+x-generated: '2026-07-19'
+x-method: generated
+x-source: >-
+  API Evangelist enrichment pipeline. Captures corrections and annotations observed while
+  harvesting https://docs.lingopal.ai/openapi/v2.json against the published guides at
+  https://docs.lingopal.ai/ — the original spec is never mutated.
+actions:
+- target: $.info
+  update:
+    contact:
+      name: Lingopal Support
+      email: support@lingopal.ai
+      url: https://docs.lingopal.ai/
+    x-apievangelist-enriched: '2026-07-19'
+    x-apievangelist-docs: https://docs.lingopal.ai/
+    x-apievangelist-notes: >-
+      Lingopal API v2 is a real-time and file-based AI translation, dubbing, subtitling
+      and transcription API covering 112 locales, authenticated with an X-API-Key header.
+- target: $.servers
+  update:
+  - url: https://api.lingopal.ai
+    description: >-
+      Production host used by every code sample in the Lingopal guides. The harvested
+      spec declares only https://vod-api.lingopal-dev.com; both hosts respond, but
+      api.lingopal.ai is the documented production base URL.
+- target: $.info
+  update:
+    x-apievangelist-conventions:
+      authentication: header X-API-Key (no bearer tokens)
+      versioning: uri-path, current v2
+      idempotency: not supported; rerun controlled by the job reset flag
+      pagination: not supported
+      rate_limits: not documented
+      error_envelope: application/json with a detail[] validation array (not RFC 9457)
+      async_model: register a job, start a workflow, poll getJobStatus to completed or failed
+- target: $.paths['/v2/jobs/register'].post
+  update:
+    x-apievangelist-partial-failure: >-
+      Returns HTTP 200 even when individual items fail. Callers must inspect
+      results[].status, registered_count and error_count rather than relying on the
+      status code alone.
+- target: $.paths['/v2/jobs/{job_id}/translations'].post
+  update:
+    x-apievangelist-rerun: >-
+      The reset flag defaults to true and prunes stale target-language state before
+      refreshing progress. Wait for the active workflow to finish before starting another run.
+- target: $.paths['/v2/jobs/{job_id}/subtitles'].post
+  update:
+    x-apievangelist-rerun: >-
+      The reset flag defaults to false, unlike the translation workflow. Set it explicitly
+      when rerun behavior matters.
+- target: $.paths['/v2/jobs/upload-and-register'].post
+  update:
+    x-apievangelist-fallback: >-
+      Returns 413 when the file exceeds the direct upload limit; fall back to
+      createStorageUpload plus completeStorageUpload for large media.
+- target: $.paths['/v2/languages/{language_type}'].get
+  update:
+    x-apievangelist-notes: >-
+      Call before submitting any workflow. language_type is one of text, dubbing or all.
+      A locale can support text, dubbing or both — do not assume every locale is
+      available for every workflow.

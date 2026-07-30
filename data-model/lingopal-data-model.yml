@@ -1,0 +1,204 @@
+generated: '2026-07-19'
+method: derived
+source: openapi/lingopal-openapi-original.json
+notes: >-
+  Entity graph derived from components.schemas $ref links and id-reference fields in the
+  Lingopal API v2 OpenAPI. The domain has one central entity — the Job — which every
+  file-based workflow (translation, subtitles, transcript/subtitle outputs) hangs off.
+  Text translation is a stateless side branch with no persisted entity.
+entities:
+- name: Job
+  id_field: job_id
+  id_type: string
+  schemas:
+  - JobResponse
+  - JobStatusResponse
+  - JobRegistrationResult
+  fields:
+  - job_id
+  - name
+  - job_type
+  - source_url
+  - created_at
+  - updated_at
+  - links
+  created_by:
+  - registerJobs
+  - uploadAndRegisterJob
+  read_by:
+  - getJob
+  - getJobStatus
+  relationships:
+  - type: has_one
+    target: JobStatus
+    via: job_id
+  - type: has_many
+    target: JobWorkflowStatus
+    via: workflows
+  - type: has_many
+    target: JobOutput
+    via: outputs
+- name: JobStatus
+  schemas:
+  - JobStatusResponse
+  fields:
+  - job_id
+  - job_type
+  - status
+  - stage
+  - sub_stage
+  - workflows
+  - outputs
+  - error
+  - updated_at
+  states:
+  - queued
+  - processing
+  - completed
+  - failed
+  relationships:
+  - type: belongs_to
+    target: Job
+    via: job_id
+- name: JobWorkflowStatus
+  schemas:
+  - JobWorkflowStatus
+  fields:
+  - status
+  - languages
+  kinds:
+  - translation
+  - subtitles
+  relationships:
+  - type: belongs_to
+    target: JobStatus
+    via: workflows
+  - type: has_many
+    target: JobLanguageStatus
+    via: languages
+- name: JobLanguageStatus
+  schemas:
+  - JobLanguageStatus
+  fields:
+  - target_language
+  - status
+  relationships:
+  - type: belongs_to
+    target: JobWorkflowStatus
+    via: languages
+- name: TranslationJob
+  schemas:
+  - TranslateJobRequest
+  - TranslationJobResponse
+  fields:
+  - workflow
+  - status
+  - job_id
+  - target_languages
+  - format
+  - message
+  - links
+  created_by:
+  - translateJob
+  - generateJobSubtitles
+  relationships:
+  - type: belongs_to
+    target: Job
+    via: job_id
+- name: JobOutput
+  kinds:
+  - transcript
+  - subtitle
+  read_by:
+  - downloadJobTranscript
+  - exportJobTranscript
+  - downloadJobSubtitle
+  selectors:
+  - locale
+  - layout
+  - file_format
+  - file_type
+  - line_length
+  - include_columns
+  - exclude_columns
+  relationships:
+  - type: belongs_to
+    target: Job
+    via: job_id
+- name: StorageUpload
+  id_field: upload_id
+  schemas:
+  - StorageUploadRequest
+  - StorageUploadResponse
+  - CompleteStorageUploadRequest
+  - CompleteStorageUploadResponse
+  fields:
+  - source_url
+  - file_path
+  - upload_id
+  - upload_urls
+  - method
+  - headers
+  created_by:
+  - createStorageUpload
+  completed_by:
+  - completeStorageUpload
+  relationships:
+  - type: has_many
+    target: UploadPart
+    via: upload_urls
+  - type: has_one
+    target: Job
+    via: source_url
+    note: the completed upload's source_url is what is subsequently registered as a Job
+- name: UploadPart
+  schemas:
+  - UploadPart
+  - CompletedUploadPart
+  fields:
+  - part_number
+  - upload_url
+  - etag
+  relationships:
+  - type: belongs_to
+    target: StorageUpload
+    via: upload_id
+- name: TextTranslation
+  persisted: false
+  schemas:
+  - TranslateTextRequest
+  - TextTranslationResponse
+  - TextTranslation
+  fields:
+  - source_text
+  - translated_text
+  - target_language
+  created_by:
+  - translateText
+  note: synchronous and stateless; no job_id is issued and nothing is persisted for retrieval
+- name: LanguageInfo
+  id_field: language_id
+  schemas:
+  - LanguageInfoResponse
+  - app__views__v2__languages__schemas__LanguageInfo
+  fields:
+  - locale
+  - language
+  - dubbing_support
+  - voice_cloning_support
+  - text_support
+  - language_id
+  read_by:
+  - listLanguages
+  note: reference data, keyed by BCP 47 locale; 112 locales returned by GET /v2/languages/all
+- name: ValidationError
+  schemas:
+  - HTTPValidationError
+  - ValidationError
+  fields:
+  - loc
+  - msg
+  - type
+  - input
+  - ctx
+  note: error envelope, not a domain entity; see errors/lingopal-problem-types.yml

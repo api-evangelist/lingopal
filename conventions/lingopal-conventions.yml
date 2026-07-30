@@ -1,0 +1,126 @@
+generated: '2026-07-19'
+method: searched
+source: https://docs.lingopal.ai/
+spec_source: openapi/lingopal-openapi-original.json
+authentication:
+  style: api-key
+  header: X-API-Key
+  bearer_tokens: false
+  docs: https://docs.lingopal.ai/guides/authentication
+  notes: >-
+    Every public API request uses an X-API-Key header. Lingopal explicitly does not
+    use bearer tokens for this API. Keys are obtained, rotated and revoked through
+    the Lingopal dashboard or an account contact. A 401 means the header is missing
+    or the key is invalid.
+  artifact: authentication/lingopal-authentication.yml
+versioning:
+  scheme: uri-path
+  current: v2
+  example: /v2/translate/text
+  header_negotiation: false
+  artifact: lifecycle/lingopal-lifecycle.yml
+idempotency:
+  supported: false
+  idempotency_key_header: null
+  notes: >-
+    Lingopal documents no idempotency key. The published retry guidance is to retry
+    transient server or network failures with exponential backoff and jitter, and to
+    never automatically retry validation errors. For asynchronous work the safe-rerun
+    contract is the job model instead: wait for the active workflow to finish before
+    starting another run, and control re-execution with the reset flag (translation
+    defaults to reset=true and prunes stale target-language state; subtitles default
+    to reset=false).
+  rerun_control:
+    field: reset
+    translate_job_default: true
+    generate_subtitles_default: false
+  docs: https://docs.lingopal.ai/guides/jobs/job-lifecycle
+pagination:
+  supported: false
+  notes: >-
+    No pagination surface. Collection responses (languages, batch job registration,
+    text translations) return complete result sets with a count / registered_count
+    rollup rather than cursors or page parameters. Text translation is capped at 100
+    strings per request.
+async_model:
+  style: job-polling
+  notes: >-
+    Text translation is synchronous. File-based workflows (media, documents, subtitles)
+    are asynchronous: register a source to obtain a reusable job_id, start a workflow,
+    then poll getJobStatus until the top-level status is completed or failed.
+  job_states:
+  - queued
+  - processing
+  - completed
+  - failed
+  status_fields:
+  - status
+  - stage
+  - sub_stage
+  - workflows.translation
+  - workflows.subtitles
+  - outputs
+  - error
+  - updated_at
+  polling_guidance: >-
+    Poll every few seconds, increase the interval for long media, and stop at completed
+    or failed.
+  docs: https://docs.lingopal.ai/guides/jobs/job-lifecycle
+uploads:
+  methods:
+  - id: register-url
+    operation: registerJobs
+    notes: Register an existing public source URL (batch capable via items[]).
+  - id: direct-upload
+    operation: uploadAndRegisterJob
+    notes: Multipart form upload of a small file; returns 413 above the direct limit.
+  - id: presigned-multipart
+    operations:
+    - createStorageUpload
+    - completeStorageUpload
+    notes: >-
+      Create a presigned upload, PUT each part to the returned upload_urls, then
+      complete with the collected part_number/etag pairs before registering the source.
+  docs: https://docs.lingopal.ai/guides/uploads/choose-upload-method
+error_envelope:
+  format: json
+  problem_json: false
+  validation_schema: HTTPValidationError
+  validation_field: detail
+  partial_failure_operation: registerJobs
+  artifact: errors/lingopal-problem-types.yml
+  docs: https://docs.lingopal.ai/guides/errors-and-validation
+rate_limiting:
+  documented: false
+  headers: []
+  notes: >-
+    No rate-limit policy or rate-limit response headers are documented in the public
+    docs or declared in the OpenAPI. Commercial usage is metered as monthly minute
+    credits per plan rather than as request-rate limits.
+request_tracing:
+  request_id_header: null
+  documented: false
+metadata:
+  supported: false
+  notes: >-
+    Jobs carry a caller-supplied name and a media_type, plus server-managed
+    created_at/updated_at and a links object; there is no free-form metadata bag.
+field_selection:
+  supported: true
+  scope: transcript export only
+  operation: exportJobTranscript
+  fields:
+  - include_columns
+  - exclude_columns
+  notes: >-
+    Transcript export supports column-level selection via include_columns /
+    exclude_columns, plus locale, layout and file_format. This is per-endpoint output
+    shaping, not a general sparse-fieldset convention.
+content_negotiation:
+  request: application/json (application/x-www-form-urlencoded multipart for direct upload)
+  response: application/json; binary transcript and subtitle downloads on output endpoints
+cross_references:
+  authentication: authentication/lingopal-authentication.yml
+  errors: errors/lingopal-problem-types.yml
+  lifecycle: lifecycle/lingopal-lifecycle.yml
+  data_model: data-model/lingopal-data-model.yml

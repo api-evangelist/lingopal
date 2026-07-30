@@ -1,0 +1,57 @@
+generated: '2026-07-19'
+method: derived
+status: candidate
+source: openapi/lingopal-openapi-original.json
+notes: >-
+  Lingopal publishes no official hosted or remote MCP server — none is referenced in the
+  docs, the llms.txt, or the lingopal-ai GitHub org (4 public repos, none MCP related).
+  This is an API Evangelist candidate tool surface derived one-to-one from the operations
+  in the Lingopal API v2 OpenAPI. Not a provider claim.
+server:
+  name: lingopal
+  transport: http
+  url: null
+  base_url: https://api.lingopal.ai
+  auth:
+    type: apiKey
+    header: X-API-Key
+tools:
+- name: list_languages
+  description: List supported languages for text, dubbing, or all capabilities
+  source_operation: openapi/lingopal-openapi-original.json#listLanguages
+- name: translate_text
+  description: Translate up to 100 strings synchronously into a target language
+  source_operation: openapi/lingopal-openapi-original.json#translateText
+- name: upload_and_register_job
+  description: Upload a small media or document file directly and register it as a job
+  source_operation: openapi/lingopal-openapi-original.json#uploadAndRegisterJob
+- name: register_jobs
+  description: Register one or more source URLs as reusable jobs
+  source_operation: openapi/lingopal-openapi-original.json#registerJobs
+- name: get_job
+  description: Get a registered job's registration metadata and related links
+  source_operation: openapi/lingopal-openapi-original.json#getJob
+- name: get_job_status
+  description: Get workflow status, stage, and output availability for a job
+  source_operation: openapi/lingopal-openapi-original.json#getJobStatus
+- name: translate_job
+  description: Start a translation or dubbing workflow on a registered job
+  source_operation: openapi/lingopal-openapi-original.json#translateJob
+- name: generate_job_subtitles
+  description: Generate subtitle tracks for a registered media job
+  source_operation: openapi/lingopal-openapi-original.json#generateJobSubtitles
+- name: download_job_transcript
+  description: Download a completed job transcript
+  source_operation: openapi/lingopal-openapi-original.json#downloadJobTranscript
+- name: export_job_transcript
+  description: Export a job transcript with selected columns, layout, and file format
+  source_operation: openapi/lingopal-openapi-original.json#exportJobTranscript
+- name: download_job_subtitle
+  description: Download a completed job subtitle track
+  source_operation: openapi/lingopal-openapi-original.json#downloadJobSubtitle
+- name: create_storage_upload
+  description: Create a presigned multipart storage upload for a large file
+  source_operation: openapi/lingopal-openapi-original.json#createStorageUpload
+- name: complete_storage_upload
+  description: Complete a multipart storage upload with the collected part ETags
+  source_operation: openapi/lingopal-openapi-original.json#completeStorageUpload

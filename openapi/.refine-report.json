@@ -1,0 +1,20 @@
+{
+  "provider": "lingopal",
+  "sources": [
+    "lingopal-jobs-api-openapi.yml",
+    "lingopal-languages-api-openapi.yml",
+    "lingopal-translate-api-openapi.yml",
+    "lingopal-upload-api-openapi.yml"
+  ],
+  "outputs": [
+    "lingopal-jobs-api-openapi.yml",
+    "lingopal-languages-api-openapi.yml",
+    "lingopal-translate-api-openapi.yml",
+    "lingopal-upload-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [],
+  "notes": [],
+  "skipped": []
+}

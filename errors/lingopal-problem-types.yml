@@ -1,0 +1,98 @@
+generated: '2026-07-19'
+method: searched
+source: https://docs.lingopal.ai/guides/errors-and-validation
+spec_source: openapi/lingopal-openapi-original.json
+format: json
+notes: >-
+  Lingopal does not use RFC 9457 application/problem+json. Errors are returned as
+  application/json. Validation failures (422) carry a FastAPI-style HTTPValidationError
+  envelope with a detail[] array; each entry has loc (path to the invalid field),
+  msg, type, input and ctx. The documented error reference is the status table at
+  https://docs.lingopal.ai/guides/errors-and-validation.
+envelope:
+  schema: HTTPValidationError
+  field: detail
+  item_schema: ValidationError
+  item_fields:
+  - loc
+  - msg
+  - type
+  - input
+  - ctx
+problems:
+- status: 401
+  title: Missing or invalid authentication token
+  meaning: Missing or invalid API key
+  action: Check the X-API-Key header and that the key has not been revoked
+  source: https://docs.lingopal.ai/guides/errors-and-validation
+  source_operations:
+  - translateText
+  - uploadAndRegisterJob
+  - registerJobs
+  - translateJob
+  - generateJobSubtitles
+  - createStorageUpload
+  - completeStorageUpload
+- status: 403
+  title: The authenticated user cannot access this resource
+  meaning: Storage upload cannot be completed
+  action: Verify upload_id, file_path and the submitted ETags
+  source: https://docs.lingopal.ai/guides/errors-and-validation
+  source_operations:
+  - completeStorageUpload
+- status: 404
+  title: The requested resource was not found
+  meaning: Job or output does not exist
+  action: Verify job_id and that the workflow has completed
+  source: https://docs.lingopal.ai/guides/errors-and-validation
+  source_operations:
+  - getJob
+  - getJobStatus
+  - downloadJobTranscript
+  - exportJobTranscript
+  - downloadJobSubtitle
+- status: 413
+  title: File exceeds the direct upload limit
+  meaning: Direct upload is too large
+  action: Use a presigned storage upload (createStorageUpload) instead
+  source: https://docs.lingopal.ai/guides/errors-and-validation
+  source_operations:
+  - uploadAndRegisterJob
+- status: 422
+  title: Validation Error
+  meaning: Request validation failed
+  action: Inspect the detail[] array and correct the field named in loc
+  schema: HTTPValidationError
+  source: https://docs.lingopal.ai/guides/errors-and-validation
+  source_operations:
+  - listLanguages
+  - translateText
+  - uploadAndRegisterJob
+  - registerJobs
+  - getJob
+  - getJobStatus
+  - translateJob
+  - generateJobSubtitles
+  - downloadJobTranscript
+  - exportJobTranscript
+  - downloadJobSubtitle
+  - createStorageUpload
+  - completeStorageUpload
+- status: 500
+  title: The server failed to complete the request
+  meaning: Server failure on a supported operation
+  action: Retry with exponential backoff and jitter; contact support if persistent
+  source: https://docs.lingopal.ai/guides/errors-and-validation
+  source_operations:
+  - listLanguages
+partial_failure:
+  operation: registerJobs
+  note: >-
+    POST /v2/jobs/register can return HTTP 200 while individual items fail. Callers
+    must inspect results[].status, registered_count and error_count, and retain each
+    successful job_id independently.
+  fields:
+  - results[].status
+  - results[].error
+  - registered_count
+  - error_count

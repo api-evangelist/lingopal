@@ -1,0 +1,40 @@
+generated: '2026-07-19'
+method: searched
+source: https://docs.lingopal.ai/
+versioning:
+  scheme: uri-path
+  current: v2
+  docs: https://docs.lingopal.ai/
+  spec: https://docs.lingopal.ai/openapi/v2.json
+  notes: >-
+    The public API is versioned in the URI path (/v2/...) and the OpenAPI info.version
+    is "v2". No prior public version is documented and no version-negotiation header
+    is offered.
+deprecation:
+  policy_url: null
+  sunset_header: false
+  deprecation_header: false
+  notes: No deprecation or sunset policy is published, and no operation in the OpenAPI is marked deprecated.
+sla:
+  url: null
+  uptime_target: null
+status_page: null
+status_page_probe:
+  url: https://status.lingopal.ai/
+  status: 000
+  note: Host does not resolve; no status page found at the conventional subdomain.
+changelog:
+  url: null
+  probe:
+    url: https://docs.lingopal.ai/changelog
+    status: 404
+  note: No dated changelog or release-notes page was found on the docs or marketing site.
+deprecated_operations: []
+hosts:
+  documented_base_url: https://api.lingopal.ai
+  openapi_declared_server: https://vod-api.lingopal-dev.com
+  note: >-
+    The OpenAPI servers[] entry points at vod-api.lingopal-dev.com while every code
+    sample in the guides calls https://api.lingopal.ai. Both hosts respond; the
+    documented production host is api.lingopal.ai. Worth reporting to the provider as
+    a spec/docs mismatch.

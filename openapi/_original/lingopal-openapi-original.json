@@ -1,0 +1,2212 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Lingopal API v2",
+    "description": "Lingopal API for uploading media and documents, starting translation workflows, generating subtitles, translating text, and downloading generated artifacts.",
+    "version": "v2"
+  },
+  "paths": {
+    "/v2/languages/{language_type}": {
+      "get": {
+        "tags": [
+          "Languages"
+        ],
+        "summary": "List supported languages",
+        "description": "Returns language capabilities filtered by dubbing, text, or all supported workflows.",
+        "operationId": "listLanguages",
+        "parameters": [
+          {
+            "name": "language_type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "dubbing",
+                "text",
+                "all"
+              ],
+              "type": "string",
+              "title": "Language Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Supported language list with capability flags.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LanguageInfoResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The server failed to complete the request."
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v2/translate/text": {
+      "post": {
+        "tags": [
+          "Translate"
+        ],
+        "summary": "Translate text",
+        "description": "Translates one to 100 text inputs with a shared target language and optional context. Use `GET /v2/languages/text` to list supported languages.",
+        "operationId": "translateText",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranslateTextRequest"
+              },
+              "examples": {
+                "translateTextMinimal": {
+                  "summary": "Translate text minimal",
+                  "description": "Translate text with only the required text inputs and target language.",
+                  "value": {
+                    "texts": [
+                      "Hello world",
+                      "Welcome to Lingopal"
+                    ],
+                    "target_language": "es"
+                  }
+                },
+                "translateTextWithOptions": {
+                  "summary": "Translate text options",
+                  "description": "Translate text with optional source language, context, and credit deduction control.",
+                  "value": {
+                    "texts": [
+                      "Hello world",
+                      "Welcome to Lingopal"
+                    ],
+                    "source_language": "en",
+                    "target_language": "es",
+                    "context": "Marketing landing page copy",
+                    "deduct_credits": true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Completed text translations.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TextTranslationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "422": {
+            "description": "Request validation error."
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v2/jobs/upload-and-register": {
+      "post": {
+        "tags": [
+          "Upload"
+        ],
+        "summary": "Upload and register a small file",
+        "description": "Uploads a small file directly to Lingopal and registers it as media or a document. For files larger than the direct upload limit, use `/v2/storage/uploads` multipart upload. Provide target languages and translation context later through the appropriate `/v2/jobs/{job_id}` workflow endpoint.",
+        "operationId": "uploadAndRegisterJob",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_uploadAndRegisterJob"
+              },
+              "examples": {
+                "directVideoJobUpload": {
+                  "summary": "Upload and register a small video file",
+                  "description": "Send the file bytes to Lingopal and receive a reusable job_id. Provide target languages later through the appropriate `/v2/jobs/{job_id}` workflow endpoint.",
+                  "value": {
+                    "file": "product-demo.mp4",
+                    "name": "Product Demo",
+                    "media_type": "video"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Registration result for the uploaded file.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobRegistrationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "413": {
+            "description": "File exceeds the direct upload limit."
+          },
+          "422": {
+            "description": "Request validation error."
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v2/jobs/register": {
+      "post": {
+        "tags": [
+          "Upload"
+        ],
+        "summary": "Register jobs for later use",
+        "description": "Registers one or more uploaded or externally hosted file URLs as Lingopal media/document records. This endpoint records source metadata only; processing inputs such as target languages and translation context are supplied later through the appropriate `/v2/jobs/{job_id}` workflow endpoint. Per-item failures are returned in the `results` array with `status=\"error\"`.",
+        "operationId": "registerJobs",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobRegistrationRequest"
+              },
+              "examples": {
+                "registerSingleFile": {
+                  "summary": "Register one uploaded source URL",
+                  "description": "Register a source_url from `/v2/storage/uploads` as a reusable Lingopal file. Use the returned job_id with `/v2/jobs/{job_id}/translations` or `/v2/jobs/{job_id}/subtitles` to start processing.",
+                  "value": {
+                    "items": [
+                      {
+                        "source_url": "https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/product-demo.mp4",
+                        "name": "Product Demo",
+                        "media_type": "video"
+                      }
+                    ]
+                  }
+                },
+                "registerMixedFileBatch": {
+                  "summary": "Register multiple uploaded sources",
+                  "description": "Register several already-uploaded sources in one request. Upload endpoints do not accept target languages or translation context; provide those to the appropriate `/v2/jobs/{job_id}` workflow endpoint.",
+                  "value": {
+                    "items": [
+                      {
+                        "source_url": "https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/product-demo.mp4",
+                        "name": "Product Demo",
+                        "media_type": "video"
+                      },
+                      {
+                        "source_url": "https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/interview.mp3",
+                        "name": "Customer Interview",
+                        "media_type": "audio"
+                      },
+                      {
+                        "source_url": "https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/brief.pdf",
+                        "name": "Launch Brief",
+                        "media_type": "document"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Per-item registration results.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobRegistrationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "422": {
+            "description": "Request validation error."
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v2/jobs/{job_id}": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Get registered job",
+        "description": "Returns metadata for a reusable registered job.",
+        "operationId": "getJob",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Reusable registered job ID.",
+              "title": "Job Id"
+            },
+            "description": "Reusable registered job ID."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registered job metadata.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Job Not Found"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/jobs/{job_id}/status": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Get registered job status",
+        "description": "Returns current processing status for a reusable registered job.",
+        "operationId": "getJobStatus",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Reusable registered job ID.",
+              "title": "Job Id"
+            },
+            "description": "Reusable registered job ID."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current job processing status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobStatusResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Job Not Found"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/jobs/{job_id}/translations": {
+      "post": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Translate a registered job",
+        "description": "Starts translation for a reusable registered job. Video/audio files use the media translation workflow; document files use the document translation workflow.",
+        "operationId": "translateJob",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Reusable registered job ID.",
+              "title": "Job Id"
+            },
+            "description": "Reusable registered job ID."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranslateJobRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Started job translation workflow.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranslationJobResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "422": {
+            "description": "Request validation error."
+          }
+        }
+      }
+    },
+    "/v2/jobs/{job_id}/subtitles": {
+      "post": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Generate subtitles for a registered job",
+        "description": "Starts translated subtitle generation for a reusable registered media file.",
+        "operationId": "generateJobSubtitles",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Reusable registered job ID.",
+              "title": "Job Id"
+            },
+            "description": "Reusable registered job ID."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranslateSubtitlesRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Started subtitle generation workflow.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranslationJobResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "422": {
+            "description": "Request validation error."
+          }
+        }
+      }
+    },
+    "/v2/jobs/{job_id}/outputs/transcript": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Download job transcript",
+        "description": "Downloads a transcript for a registered job as JSON, CSV, TSV, or plain text.",
+        "operationId": "downloadJobTranscript",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Reusable registered job ID.",
+              "title": "Job Id"
+            },
+            "description": "Reusable registered job ID."
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "source",
+              "title": "Locale"
+            }
+          },
+          {
+            "name": "layout",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "compact",
+                "detailed"
+              ],
+              "type": "string",
+              "default": "compact",
+              "title": "Layout"
+            }
+          },
+          {
+            "name": "file_format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "json",
+                "csv",
+                "tsv",
+                "txt"
+              ],
+              "type": "string",
+              "default": "txt",
+              "title": "File Format"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transcript file content or JSON transcript payload.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Transcript Not Found"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Export job transcript with selected columns",
+        "description": "Exports a transcript for a registered job with optional include/exclude controls.",
+        "operationId": "exportJobTranscript",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Reusable registered job ID.",
+              "title": "Job Id"
+            },
+            "description": "Reusable registered job ID."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranscriptDownloadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transcript file content or JSON transcript payload.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Transcript Not Found"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/jobs/{job_id}/outputs/subtitle": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Download job subtitle",
+        "description": "Downloads generated subtitles for a registered job as SRT or VTT.",
+        "operationId": "downloadJobSubtitle",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Reusable registered job ID.",
+              "title": "Job Id"
+            },
+            "description": "Reusable registered job ID."
+          },
+          {
+            "name": "file_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "srt",
+                "vtt"
+              ],
+              "type": "string",
+              "default": "srt",
+              "title": "File Type"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "source",
+              "title": "Locale"
+            }
+          },
+          {
+            "name": "line_length",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 7,
+              "title": "Line Length"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subtitle file content.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Subtitle Not Found"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/storage/uploads": {
+      "post": {
+        "tags": [
+          "Upload"
+        ],
+        "summary": "Create a presigned storage upload",
+        "description": "Returns one or more presigned S3 upload URLs for uploading a source file before registering it with `/v2/jobs/register`. Provide `file_size` to request a multipart upload.",
+        "operationId": "createStorageUpload",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StorageUploadRequest"
+              },
+              "examples": {
+                "singlePartStorageUpload": {
+                  "summary": "Create a single-part upload URL",
+                  "description": "Request one presigned PUT URL for a client-managed source upload. Register the returned source_url later with `/v2/jobs/register`.",
+                  "value": {
+                    "file_ext": "mp4"
+                  }
+                },
+                "multipartStorageUpload": {
+                  "summary": "Create multipart upload URLs",
+                  "description": "Request presigned part URLs for a large source upload. Complete the multipart upload with `/v2/storage/uploads/complete`, then register the returned source_url with `/v2/jobs/register`.",
+                  "value": {
+                    "file_ext": "mp4",
+                    "file_size": 524288000
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Presigned upload metadata and upload part URLs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StorageUploadResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "422": {
+            "description": "Request validation error."
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v2/storage/uploads/complete": {
+      "post": {
+        "tags": [
+          "Upload"
+        ],
+        "summary": "Complete a multipart storage upload",
+        "description": "Completes an S3 multipart upload created by `/v2/storage/uploads`. Only uploads owned by the authenticated user can be completed.",
+        "operationId": "completeStorageUpload",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteStorageUploadRequest"
+              },
+              "examples": {
+                "completeMultipartStorageUpload": {
+                  "summary": "Complete multipart source upload",
+                  "description": "Finalize a multipart upload after every part has been uploaded to S3. Then register the returned source_url with `/v2/jobs/register`.",
+                  "value": {
+                    "file_path": "presigned_upload/user_123/source.mp4",
+                    "upload_id": "2~example-upload-id",
+                    "etags": [
+                      {
+                        "part_number": 1,
+                        "etag": "\"9b2cf535f27731c974343645a3985328\""
+                      },
+                      {
+                        "part_number": 2,
+                        "etag": "\"2a1fd1f7bc39b3868d2a8f6fb50f6a7d\""
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Completed storage upload location.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompleteStorageUploadResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "403": {
+            "description": "The authenticated user cannot access this resource."
+          },
+          "422": {
+            "description": "Request validation error."
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "LanguageInfoResponse": {
+        "properties": {
+          "request_type": {
+            "type": "string",
+            "enum": [
+              "dubbing",
+              "text",
+              "all"
+            ],
+            "title": "Request Type",
+            "description": "Language capability filter used for the response."
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count",
+            "description": "Number of returned languages."
+          },
+          "languages": {
+            "items": {
+              "$ref": "#/components/schemas/app__views__v2__languages__schemas__LanguageInfo"
+            },
+            "type": "array",
+            "title": "Languages",
+            "description": "Supported languages and capability flags."
+          }
+        },
+        "type": "object",
+        "required": [
+          "request_type",
+          "count",
+          "languages"
+        ],
+        "title": "LanguageInfoResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "TranslateTextRequest": {
+        "properties": {
+          "texts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Texts",
+            "description": "One to 100 source text inputs to translate. Aliases accepted: `text`, `content`.",
+            "examples": [
+              [
+                "Hello world",
+                "Welcome to Lingopal"
+              ]
+            ]
+          },
+          "target_language": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Target Language",
+            "description": "Single target locale code. Use `GET /v2/languages/text` to list supported text translation languages. Alias accepted: `language`.",
+            "examples": [
+              "es"
+            ]
+          },
+          "source_language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Language",
+            "description": "Optional source locale code. Use `GET /v2/languages/text` to list supported text translation languages. If omitted, Lingopal may auto-detect it.",
+            "examples": [
+              "en"
+            ]
+          },
+          "context": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context",
+            "description": "Optional context to improve translation quality.",
+            "examples": [
+              "Marketing landing page copy"
+            ]
+          },
+          "deduct_credits": {
+            "type": "boolean",
+            "title": "Deduct Credits",
+            "description": "Whether this request should deduct credits. Alias accepted: `deduct_credits_flag`.",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "texts",
+          "target_language"
+        ],
+        "title": "TranslateTextRequest"
+      },
+      "TextTranslationResponse": {
+        "properties": {
+          "workflow": {
+            "type": "string",
+            "const": "translate_text",
+            "title": "Workflow",
+            "default": "translate_text"
+          },
+          "status": {
+            "type": "string",
+            "const": "completed",
+            "title": "Status",
+            "default": "completed"
+          },
+          "translations": {
+            "items": {
+              "$ref": "#/components/schemas/TextTranslation"
+            },
+            "type": "array",
+            "title": "Translations",
+            "description": "Completed text translations."
+          }
+        },
+        "type": "object",
+        "required": [
+          "translations"
+        ],
+        "title": "TextTranslationResponse"
+      },
+      "Body_uploadAndRegisterJob": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "description": "Small source file to upload and register."
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "media_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "video",
+                  "audio",
+                  "document"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Media Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_uploadAndRegisterJob"
+      },
+      "JobRegistrationResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Human-readable summary of the batch registration result."
+          },
+          "registered_count": {
+            "type": "integer",
+            "title": "Registered Count",
+            "description": "Number of items successfully registered.",
+            "examples": [
+              1
+            ]
+          },
+          "error_count": {
+            "type": "integer",
+            "title": "Error Count",
+            "description": "Number of items that failed registration.",
+            "examples": [
+              0
+            ]
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/JobRegistrationResult"
+            },
+            "type": "array",
+            "title": "Results",
+            "description": "Per-item registration results."
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "registered_count",
+          "error_count",
+          "results"
+        ],
+        "title": "JobRegistrationResponse"
+      },
+      "JobRegistrationRequest": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/JobRegistrationItem"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Items",
+            "description": "One or more uploaded files to register."
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "JobRegistrationRequest"
+      },
+      "JobResponse": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "title": "Job Id",
+            "description": "Reusable registered job ID."
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Job display name."
+          },
+          "job_type": {
+            "type": "string",
+            "enum": [
+              "video",
+              "audio",
+              "document"
+            ],
+            "title": "Job Type",
+            "description": "Registered job type."
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url",
+            "description": "Original or registered source URL."
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At",
+            "description": "Job creation timestamp."
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At",
+            "description": "Job update timestamp."
+          },
+          "links": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Links",
+            "description": "Related v2 job links."
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id",
+          "name",
+          "job_type"
+        ],
+        "title": "JobResponse"
+      },
+      "JobStatusResponse": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "title": "Job Id",
+            "description": "Reusable registered job ID."
+          },
+          "job_type": {
+            "type": "string",
+            "enum": [
+              "video",
+              "audio",
+              "document"
+            ],
+            "title": "Job Type",
+            "description": "Registered job type."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "processing",
+              "completed",
+              "failed"
+            ],
+            "title": "Status",
+            "description": "Current active workflow processing status."
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage",
+            "description": "Best-effort internal processing stage."
+          },
+          "sub_stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Stage",
+            "description": "Best-effort internal processing sub-stage."
+          },
+          "workflows": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JobWorkflowStatus"
+            },
+            "propertyNames": {
+              "enum": [
+                "translation",
+                "subtitles"
+              ]
+            },
+            "type": "object",
+            "title": "Workflows",
+            "description": "Current workflow statuses keyed by v2 workflow type."
+          },
+          "outputs": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "type": "object",
+            "title": "Outputs",
+            "description": "Best-effort output availability flags."
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error",
+            "description": "Processing error when the job failed."
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At",
+            "description": "Last job update timestamp."
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id",
+          "job_type",
+          "status"
+        ],
+        "title": "JobStatusResponse"
+      },
+      "TranslateJobRequest": {
+        "properties": {
+          "target_languages": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Target Languages",
+            "description": "Target locale codes. Alias accepted: `languages`. The job type determines whether media or document translation is started.",
+            "examples": [
+              [
+                "es",
+                "fr"
+              ]
+            ]
+          },
+          "context": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context",
+            "description": "Optional context used for document translation."
+          },
+          "reset": {
+            "type": "boolean",
+            "title": "Reset",
+            "description": "Whether to prune stale target languages before starting processing; active workflow progress is always refreshed for a new run.",
+            "default": true
+          },
+          "remove_background_audio": {
+            "type": "boolean",
+            "title": "Remove Background Audio",
+            "description": "Whether to remove background audio for media translation.",
+            "default": false
+          },
+          "number_of_speakers": {
+            "type": "integer",
+            "minimum": 0,
+            "title": "Number Of Speakers",
+            "description": "Optional speaker count hint for media translation. Use 0 to auto-detect.",
+            "default": 0
+          },
+          "burn_subtitles_on_source": {
+            "type": "boolean",
+            "title": "Burn Subtitles On Source",
+            "description": "Whether to burn generated subtitles onto source-language media.",
+            "default": false
+          },
+          "prepend_ai_warning": {
+            "type": "boolean",
+            "title": "Prepend Ai Warning",
+            "description": "Whether to prepend an AI-generated-content warning.",
+            "default": false
+          },
+          "enhance": {
+            "type": "boolean",
+            "title": "Enhance",
+            "description": "Whether to enable media enhancement when supported.",
+            "default": false
+          },
+          "experimental_force_accent": {
+            "type": "boolean",
+            "title": "Experimental Force Accent",
+            "description": "Whether to force accent handling for experimental workflows.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_languages"
+        ],
+        "title": "TranslateJobRequest"
+      },
+      "TranslationJobResponse": {
+        "properties": {
+          "workflow": {
+            "type": "string",
+            "enum": [
+              "translate_media",
+              "translate_text",
+              "translate_document",
+              "translate_subtitles"
+            ],
+            "title": "Workflow",
+            "description": "Translation workflow that was started."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "started",
+              "completed",
+              "error"
+            ],
+            "title": "Status",
+            "description": "Current workflow status."
+          },
+          "job_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Id",
+            "description": "Reusable registered job ID associated with this workflow."
+          },
+          "target_languages": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Languages",
+            "description": "Target locale codes requested for this workflow."
+          },
+          "format": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Format",
+            "description": "Requested output format when applicable."
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message",
+            "description": "Human-readable status message."
+          },
+          "links": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Links",
+            "description": "Related API links."
+          }
+        },
+        "type": "object",
+        "required": [
+          "workflow",
+          "status"
+        ],
+        "title": "TranslationJobResponse"
+      },
+      "TranslateSubtitlesRequest": {
+        "properties": {
+          "target_languages": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Target Languages",
+            "description": "Target locale codes. Use `GET /v2/languages/text` to list supported subtitle translation languages. Alias accepted: `languages`.",
+            "examples": [
+              [
+                "es",
+                "fr"
+              ]
+            ]
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "srt",
+              "vtt"
+            ],
+            "title": "Format",
+            "description": "Preferred subtitle output format.",
+            "default": "srt"
+          },
+          "reset": {
+            "type": "boolean",
+            "title": "Reset",
+            "description": "Whether to prune existing subtitle target state before starting processing.",
+            "default": false
+          },
+          "burn_subtitles": {
+            "type": "boolean",
+            "title": "Burn Subtitles",
+            "description": "Whether to burn generated subtitles into media output when supported.",
+            "default": false
+          },
+          "include_source_language": {
+            "type": "boolean",
+            "title": "Include Source Language",
+            "description": "Whether to include source-language subtitles in generated outputs when supported.",
+            "default": false
+          },
+          "word_count_per_line": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "title": "Word Count Per Line",
+            "description": "Maximum subtitle words per line.",
+            "default": 7
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_languages"
+        ],
+        "title": "TranslateSubtitlesRequest"
+      },
+      "TranscriptDownloadRequest": {
+        "properties": {
+          "locale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locale",
+            "description": "Transcript locale to export. Use `source` for the original transcript.",
+            "default": "source",
+            "examples": [
+              "source",
+              "es"
+            ]
+          },
+          "layout": {
+            "type": "string",
+            "enum": [
+              "compact",
+              "detailed"
+            ],
+            "title": "Layout",
+            "description": "Transcript response layout for JSON-style exports.",
+            "default": "compact"
+          },
+          "file_format": {
+            "type": "string",
+            "enum": [
+              "json",
+              "csv",
+              "tsv",
+              "txt"
+            ],
+            "title": "File Format",
+            "description": "Transcript download format.",
+            "default": "txt"
+          },
+          "include_columns": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "speaker_id",
+                    "start_time",
+                    "end_time",
+                    "text",
+                    "gender",
+                    "emotion"
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Include Columns",
+            "description": "Additional transcript columns to include in the export."
+          },
+          "exclude_columns": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "speaker_id",
+                    "start_time",
+                    "end_time",
+                    "text",
+                    "gender",
+                    "emotion"
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exclude Columns",
+            "description": "Transcript columns to omit from the export."
+          }
+        },
+        "type": "object",
+        "title": "TranscriptDownloadRequest"
+      },
+      "StorageUploadRequest": {
+        "properties": {
+          "file_ext": {
+            "type": "string",
+            "minLength": 1,
+            "title": "File Ext",
+            "description": "Source file extension, with or without a leading dot.",
+            "examples": [
+              "mp4",
+              "wav",
+              "pdf"
+            ]
+          },
+          "file_size": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Size",
+            "description": "Source file size in bytes. Provide this value to request multipart presigned upload URLs; omit it for a single PUT upload URL.",
+            "examples": [
+              104857600
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "file_ext"
+        ],
+        "title": "StorageUploadRequest"
+      },
+      "StorageUploadResponse": {
+        "properties": {
+          "source_url": {
+            "type": "string",
+            "title": "Source Url",
+            "description": "Final URL of the uploaded file after upload completion.",
+            "examples": [
+              "https://example-bucket.s3.amazonaws.com/presigned_upload/user/file.mp4"
+            ]
+          },
+          "file_path": {
+            "type": "string",
+            "title": "File Path",
+            "description": "Storage path for the storage upload. Use this when completing multipart uploads.",
+            "examples": [
+              "presigned_upload/user_123/source.mp4"
+            ]
+          },
+          "upload_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upload Id",
+            "description": "S3 multipart upload ID. Present only when the storage upload uses multipart upload.",
+            "examples": [
+              "2~example-upload-id"
+            ]
+          },
+          "upload_urls": {
+            "items": {
+              "$ref": "#/components/schemas/UploadPart"
+            },
+            "type": "array",
+            "title": "Upload Urls",
+            "description": "Presigned upload URLs, one per upload part."
+          },
+          "method": {
+            "type": "string",
+            "const": "PUT",
+            "title": "Method",
+            "description": "HTTP method clients must use for each presigned upload URL.",
+            "default": "PUT"
+          },
+          "headers": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Headers",
+            "description": "Additional headers clients should send with the upload request.",
+            "examples": [
+              {}
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_url",
+          "file_path"
+        ],
+        "title": "StorageUploadResponse"
+      },
+      "CompleteStorageUploadRequest": {
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "title": "File Path",
+            "description": "Storage path returned by `/v2/storage/uploads` for the multipart upload.",
+            "examples": [
+              "presigned_upload/user_123/source.mp4"
+            ]
+          },
+          "upload_id": {
+            "type": "string",
+            "title": "Upload Id",
+            "description": "Multipart upload ID returned by `/v2/storage/uploads`.",
+            "examples": [
+              "2~example-upload-id"
+            ]
+          },
+          "etags": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/CompletedUploadPart"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Etags",
+            "description": "ETags for uploaded parts, ordered by part number. String ETags are accepted for compatibility."
+          }
+        },
+        "type": "object",
+        "required": [
+          "file_path",
+          "upload_id",
+          "etags"
+        ],
+        "title": "CompleteStorageUploadRequest"
+      },
+      "CompleteStorageUploadResponse": {
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "title": "File Path",
+            "description": "Storage path for the completed storage upload.",
+            "examples": [
+              "presigned_upload/user_123/source.mp4"
+            ]
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url",
+            "description": "Final URL of the completed uploaded file.",
+            "examples": [
+              "https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "file_path",
+          "source_url"
+        ],
+        "title": "CompleteStorageUploadResponse"
+      },
+      "app__views__v2__languages__schemas__LanguageInfo": {
+        "properties": {
+          "locale": {
+            "type": "string",
+            "title": "Locale",
+            "description": "Locale code used in API requests.",
+            "examples": [
+              "es"
+            ]
+          },
+          "language": {
+            "type": "string",
+            "title": "Language",
+            "description": "Human-readable language name.",
+            "examples": [
+              "Spanish"
+            ]
+          },
+          "dubbing_support": {
+            "type": "boolean",
+            "title": "Dubbing Support",
+            "description": "Whether dubbing workflows support this language."
+          },
+          "voice_cloning_support": {
+            "type": "boolean",
+            "title": "Voice Cloning Support",
+            "description": "Whether voice cloning is supported for this language."
+          },
+          "text_support": {
+            "type": "boolean",
+            "title": "Text Support",
+            "description": "Whether text/document workflows support this language."
+          },
+          "language_id": {
+            "type": "integer",
+            "title": "Language Id",
+            "description": "Internal Lingopal language identifier.",
+            "examples": [
+              1
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "locale",
+          "language",
+          "dubbing_support",
+          "voice_cloning_support",
+          "text_support",
+          "language_id"
+        ],
+        "title": "LanguageInfo"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "TextTranslation": {
+        "properties": {
+          "source_text": {
+            "type": "string",
+            "title": "Source Text",
+            "description": "Original source text."
+          },
+          "translated_text": {
+            "type": "string",
+            "title": "Translated Text",
+            "description": "Translated text."
+          },
+          "target_language": {
+            "type": "string",
+            "title": "Target Language",
+            "description": "Target locale code for this translation."
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_text",
+          "translated_text",
+          "target_language"
+        ],
+        "title": "TextTranslation"
+      },
+      "JobRegistrationResult": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Display name used for the registered item."
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url",
+            "description": "Source URL submitted for this item."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "registered",
+              "error"
+            ],
+            "title": "Status",
+            "description": "Whether this item was registered or failed validation/registration."
+          },
+          "job_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Id",
+            "description": "Reusable registered job ID when registration succeeds.",
+            "examples": [
+              "job_123"
+            ]
+          },
+          "media_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "video",
+                  "audio",
+                  "document"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Media Type",
+            "description": "Detected or supplied media type for the registered item."
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error",
+            "description": "Per-item error message when `status` is `error`."
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "source_url",
+          "status"
+        ],
+        "title": "JobRegistrationResult"
+      },
+      "JobRegistrationItem": {
+        "properties": {
+          "source_url": {
+            "type": "string",
+            "title": "Source Url",
+            "description": "Uploaded or externally hosted file URL to register as media or a document.",
+            "examples": [
+              "https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4"
+            ]
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "Optional display name for the registered media/document.",
+            "examples": [
+              "Product demo"
+            ]
+          },
+          "media_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "video",
+                  "audio",
+                  "document"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Media Type",
+            "description": "Optional media type hint. If omitted, Lingopal infers it from the file.",
+            "examples": [
+              "video"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_url"
+        ],
+        "title": "JobRegistrationItem"
+      },
+      "JobWorkflowStatus": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "processing",
+              "completed",
+              "failed"
+            ],
+            "title": "Status",
+            "description": "Current aggregate workflow status."
+          },
+          "languages": {
+            "items": {
+              "$ref": "#/components/schemas/JobLanguageStatus"
+            },
+            "type": "array",
+            "title": "Languages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "JobWorkflowStatus"
+      },
+      "UploadPart": {
+        "properties": {
+          "part_number": {
+            "type": "integer",
+            "title": "Part Number",
+            "description": "One-based multipart upload part number.",
+            "examples": [
+              1
+            ]
+          },
+          "upload_url": {
+            "type": "string",
+            "title": "Upload Url",
+            "description": "Presigned URL used to upload this part with the documented HTTP method.",
+            "examples": [
+              "https://example-bucket.s3.amazonaws.com/presigned_upload/user/file.mp4?X-Amz-Signature=..."
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "part_number",
+          "upload_url"
+        ],
+        "title": "UploadPart"
+      },
+      "CompletedUploadPart": {
+        "properties": {
+          "part_number": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "title": "Part Number",
+            "description": "One-based part number returned by the storage upload response.",
+            "examples": [
+              1
+            ]
+          },
+          "etag": {
+            "type": "string",
+            "title": "Etag",
+            "description": "ETag returned by S3 after uploading this part.",
+            "examples": [
+              "\"9b2cf535f27731c974343645a3985328\""
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "part_number",
+          "etag"
+        ],
+        "title": "CompletedUploadPart"
+      },
+      "JobLanguageStatus": {
+        "properties": {
+          "target_language": {
+            "type": "string",
+            "title": "Target Language",
+            "description": "Target locale code."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "processing",
+              "completed",
+              "failed"
+            ],
+            "title": "Status",
+            "description": "Current status for this language."
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_language",
+          "status"
+        ],
+        "title": "JobLanguageStatus"
+      }
+    },
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "in": "header",
+        "name": "X-API-Key",
+        "type": "apiKey"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Upload",
+      "description": "Create storage uploads and register jobs for later use."
+    },
+    {
+      "name": "Jobs",
+      "description": "Work with reusable registered jobs, their workflows, status, and outputs."
+    },
+    {
+      "name": "Translate",
+      "description": "Start media, document, subtitle, and text translation workflows."
+    },
+    {
+      "name": "Languages",
+      "description": "List supported language capabilities for dubbing, text, and other workflows."
+    }
+  ],
+  "servers": [
+    {
+      "url": "https://vod-api.lingopal-dev.com"
+    }
+  ],
+  "security": [
+    {
+      "APIKeyHeader": []
+    }
+  ]
+}

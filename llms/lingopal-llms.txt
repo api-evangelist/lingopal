@@ -1,0 +1,20 @@
+# Lingopal API
+
+> Guides and interactive API reference for the Lingopal v2 public API.
+
+These docs are organized by user outcomes such as translating text, media, documents, generating subtitles, uploading files, and downloading outputs. The public API authenticates with the `X-API-Key` header.
+
+## Documentation Sets
+
+- [Abridged documentation](https://docs.lingopal.ai/llms-small.txt): a compact version of the documentation for Lingopal API, with non-essential content removed
+- [Complete documentation](https://docs.lingopal.ai/llms-full.txt): the full documentation for Lingopal API
+
+## Notes
+
+- The complete documentation includes all content from the official documentation
+- The content is automatically generated from the same source as the official documentation
+
+## Optional
+
+- [Interactive API Reference](https://docs.lingopal.ai/reference): Scalar-powered reference for the Lingopal v2 public API.
+- [OpenAPI v2 JSON](https://docs.lingopal.ai/openapi/v2.json): Raw OpenAPI specification used by the API reference and endpoint playgrounds.
