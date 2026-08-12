@@ -153,7 +153,7 @@ common:
 - type: GettingStarted
   url: https://docs.lingopal.ai/guides/getting-started
 - type: OpenAPI
-  url: openapi/lingopal-openapi-original.json
+  url: openapi/_original/lingopal-openapi-original.json
 - type: Authentication
   url: authentication/lingopal-authentication.yml
 - type: Conventions
