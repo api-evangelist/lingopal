@@ -1,0 +1,1126 @@
+{
+  "item": [
+    {
+      "id": "b87610ea-25ca-4c63-aedb-9f0ab3f8c558",
+      "name": "Upload",
+      "description": {
+        "content": "Create storage uploads and register jobs for later use.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "11b4e972-7c6b-404e-a32c-f75b18d413e4",
+          "name": "Upload and register a small file",
+          "request": {
+            "name": "Upload and register a small file",
+            "description": {
+              "content": "Uploads a small file directly to Lingopal and registers it as media or a document. For files larger than the direct upload limit, use `/v2/storage/uploads` multipart upload. Provide target languages and translation context later through the appropriate `/v2/jobs/{job_id}` workflow endpoint.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v2",
+                "jobs",
+                "upload-and-register"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "X-API-Key"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "value": "<string>",
+                  "type": "text",
+                  "description": "(Required) Small source file to upload and register."
+                },
+                {
+                  "key": "name",
+                  "value": "<string>",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "media_type",
+                  "value": "<string>",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "ff44525f-573a-49be-a594-4dfa3944d93e",
+              "name": "Registration result for the uploaded file.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v2",
+                    "jobs",
+                    "upload-and-register"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "description": {
+                        "content": "(Required) Small source file to upload and register.",
+                        "type": "text/plain"
+                      },
+                      "key": "file",
+                      "value": "product-demo.mp4",
+                      "type": "text"
+                    },
+                    {
+                      "description": {
+                        "content": "",
+                        "type": "text/plain"
+                      },
+                      "key": "name",
+                      "value": "Product Demo",
+                      "type": "text"
+                    },
+                    {
+                      "description": {
+                        "content": "",
+                        "type": "text/plain"
+                      },
+                      "key": "media_type",
+                      "value": "video",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"string\",\n  \"registered_count\": 1,\n  \"error_count\": 0,\n  \"results\": [\n    {\n      \"name\": \"string\",\n      \"source_url\": \"string\",\n      \"status\": \"registered\",\n      \"job_id\": \"string\",\n      \"media_type\": \"audio\",\n      \"error\": \"string\"\n    },\n    {\n      \"name\": \"string\",\n      \"source_url\": \"string\",\n      \"status\": \"registered\",\n      \"job_id\": \"string\",\n      \"media_type\": \"document\",\n      \"error\": \"string\"\n    }\n  ]\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "5d7c7a34-39d1-4851-af1c-a692c1d81502",
+              "name": "Missing or invalid authentication token.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v2",
+                    "jobs",
+                    "upload-and-register"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "description": {
+                        "content": "(Required) Small source file to upload and register.",
+                        "type": "text/plain"
+                      },
+                      "key": "file",
+                      "value": "product-demo.mp4",
+                      "type": "text"
+                    },
+                    {
+                      "description": {
+                        "content": "",
+                        "type": "text/plain"
+                      },
+                      "key": "name",
+                      "value": "Product Demo",
+                      "type": "text"
+                    },
+                    {
+                      "description": {
+                        "content": "",
+                        "type": "text/plain"
+                      },
+                      "key": "media_type",
+                      "value": "video",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "611ed8cc-e5e9-419f-903e-163fa9701d00",
+              "name": "File exceeds the direct upload limit.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v2",
+                    "jobs",
+                    "upload-and-register"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "description": {
+                        "content": "(Required) Small source file to upload and register.",
+                        "type": "text/plain"
+                      },
+                      "key": "file",
+                      "value": "product-demo.mp4",
+                      "type": "text"
+                    },
+                    {
+                      "description": {
+                        "content": "",
+                        "type": "text/plain"
+                      },
+                      "key": "name",
+                      "value": "Product Demo",
+                      "type": "text"
+                    },
+                    {
+                      "description": {
+                        "content": "",
+                        "type": "text/plain"
+                      },
+                      "key": "media_type",
+                      "value": "video",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "status": "Request Entity Too Large",
+              "code": 413,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "e3f11252-2b4e-4c6d-874c-9f7cec96297d",
+              "name": "Request validation error.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v2",
+                    "jobs",
+                    "upload-and-register"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "description": {
+                        "content": "(Required) Small source file to upload and register.",
+                        "type": "text/plain"
+                      },
+                      "key": "file",
+                      "value": "product-demo.mp4",
+                      "type": "text"
+                    },
+                    {
+                      "description": {
+                        "content": "",
+                        "type": "text/plain"
+                      },
+                      "key": "name",
+                      "value": "Product Demo",
+                      "type": "text"
+                    },
+                    {
+                      "description": {
+                        "content": "",
+                        "type": "text/plain"
+                      },
+                      "key": "media_type",
+                      "value": "video",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "d19b367b-1fc8-49b4-b0ca-11ecb88fe2f8",
+          "name": "Register jobs for later use",
+          "request": {
+            "name": "Register jobs for later use",
+            "description": {
+              "content": "Registers one or more uploaded or externally hosted file URLs as Lingopal media/document records. This endpoint records source metadata only; processing inputs such as target languages and translation context are supplied later through the appropriate `/v2/jobs/{job_id}` workflow endpoint. Per-item failures are returned in the `results` array with `status=\"error\"`.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v2",
+                "jobs",
+                "register"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "X-API-Key"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"source_url\": \"<string>\",\n      \"name\": \"<string>\",\n      \"media_type\": \"<string>\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "abc88289-3747-48d9-bad0-0ff010862976",
+              "name": "Per-item registration results.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v2",
+                    "jobs",
+                    "register"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"source_url\": \"https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/product-demo.mp4\",\n      \"name\": \"Product Demo\",\n      \"media_type\": \"video\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"string\",\n  \"registered_count\": 1,\n  \"error_count\": 0,\n  \"results\": [\n    {\n      \"name\": \"string\",\n      \"source_url\": \"string\",\n      \"status\": \"registered\",\n      \"job_id\": \"string\",\n      \"media_type\": \"audio\",\n      \"error\": \"string\"\n    },\n    {\n      \"name\": \"string\",\n      \"source_url\": \"string\",\n      \"status\": \"registered\",\n      \"job_id\": \"string\",\n      \"media_type\": \"document\",\n      \"error\": \"string\"\n    }\n  ]\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "5f78b595-1459-497e-9920-6a964bd11c02",
+              "name": "Missing or invalid authentication token.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v2",
+                    "jobs",
+                    "register"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"source_url\": \"https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/product-demo.mp4\",\n      \"name\": \"Product Demo\",\n      \"media_type\": \"video\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "d976fe45-866a-429c-9e75-9ead6e3d2954",
+              "name": "Request validation error.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v2",
+                    "jobs",
+                    "register"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"source_url\": \"https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/product-demo.mp4\",\n      \"name\": \"Product Demo\",\n      \"media_type\": \"video\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "e295f774-0a10-4ad0-b2c5-443f673c9a50",
+          "name": "Create a presigned storage upload",
+          "request": {
+            "name": "Create a presigned storage upload",
+            "description": {
+              "content": "Returns one or more presigned S3 upload URLs for uploading a source file before registering it with `/v2/jobs/register`. Provide `file_size` to request a multipart upload.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v2",
+                "storage",
+                "uploads"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "X-API-Key"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"file_ext\": \"<string>\",\n  \"file_size\": \"<integer>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "a16b5eab-3480-4536-8239-f0b74cc4c49c",
+              "name": "Presigned upload metadata and upload part URLs.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v2",
+                    "storage",
+                    "uploads"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"file_ext\": \"mp4\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"source_url\": \"https://example-bucket.s3.amazonaws.com/presigned_upload/user/file.mp4\",\n  \"file_path\": \"presigned_upload/user_123/source.mp4\",\n  \"upload_id\": \"string\",\n  \"upload_urls\": [\n    {\n      \"part_number\": 1,\n      \"upload_url\": \"https://example-bucket.s3.amazonaws.com/presigned_upload/user/file.mp4?X-Amz-Signature=...\"\n    },\n    {\n      \"part_number\": 1,\n      \"upload_url\": \"https://example-bucket.s3.amazonaws.com/presigned_upload/user/file.mp4?X-Amz-Signature=...\"\n    }\n  ],\n  \"method\": \"PUT\",\n  \"headers\": {}\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "f70a39ef-0b14-416f-81da-536add04ed79",
+              "name": "Missing or invalid authentication token.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v2",
+                    "storage",
+                    "uploads"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"file_ext\": \"mp4\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "aa6420f6-a252-4bb1-8eb7-96d07f7d7459",
+              "name": "Request validation error.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v2",
+                    "storage",
+                    "uploads"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"file_ext\": \"mp4\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "25f95c97-1bbe-4e7f-90e6-b4851fe1b9f1",
+          "name": "Complete a multipart storage upload",
+          "request": {
+            "name": "Complete a multipart storage upload",
+            "description": {
+              "content": "Completes an S3 multipart upload created by `/v2/storage/uploads`. Only uploads owned by the authenticated user can be completed.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v2",
+                "storage",
+                "uploads",
+                "complete"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "X-API-Key"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"file_path\": \"<string>\",\n  \"upload_id\": \"<string>\",\n  \"etags\": [\n    {\n      \"part_number\": \"<integer>\",\n      \"etag\": \"<string>\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "fe989f8f-93ca-44a8-96e3-a8905e8544a3",
+              "name": "Completed storage upload location.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v2",
+                    "storage",
+                    "uploads",
+                    "complete"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"file_path\": \"presigned_upload/user_123/source.mp4\",\n  \"upload_id\": \"2~example-upload-id\",\n  \"etags\": [\n    {\n      \"part_number\": 1,\n      \"etag\": \"\\\"9b2cf535f27731c974343645a3985328\\\"\"\n    },\n    {\n      \"part_number\": 2,\n      \"etag\": \"\\\"2a1fd1f7bc39b3868d2a8f6fb50f6a7d\\\"\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"file_path\": \"presigned_upload/user_123/source.mp4\",\n  \"source_url\": \"https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "466309e4-1bc1-4390-b62a-2a26674ebcc5",
+              "name": "Missing or invalid authentication token.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v2",
+                    "storage",
+                    "uploads",
+                    "complete"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"file_path\": \"presigned_upload/user_123/source.mp4\",\n  \"upload_id\": \"2~example-upload-id\",\n  \"etags\": [\n    {\n      \"part_number\": 1,\n      \"etag\": \"\\\"9b2cf535f27731c974343645a3985328\\\"\"\n    },\n    {\n      \"part_number\": 2,\n      \"etag\": \"\\\"2a1fd1f7bc39b3868d2a8f6fb50f6a7d\\\"\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "2227b6a1-762b-4566-9ee9-8973c06e4860",
+              "name": "The authenticated user cannot access this resource.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v2",
+                    "storage",
+                    "uploads",
+                    "complete"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"file_path\": \"presigned_upload/user_123/source.mp4\",\n  \"upload_id\": \"2~example-upload-id\",\n  \"etags\": [\n    {\n      \"part_number\": 1,\n      \"etag\": \"\\\"9b2cf535f27731c974343645a3985328\\\"\"\n    },\n    {\n      \"part_number\": 2,\n      \"etag\": \"\\\"2a1fd1f7bc39b3868d2a8f6fb50f6a7d\\\"\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "752bfb85-7f89-4dee-9e23-068a936e16ca",
+              "name": "Request validation error.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v2",
+                    "storage",
+                    "uploads",
+                    "complete"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"file_path\": \"presigned_upload/user_123/source.mp4\",\n  \"upload_id\": \"2~example-upload-id\",\n  \"etags\": [\n    {\n      \"part_number\": 1,\n      \"etag\": \"\\\"9b2cf535f27731c974343645a3985328\\\"\"\n    },\n    {\n      \"part_number\": 2,\n      \"etag\": \"\\\"2a1fd1f7bc39b3868d2a8f6fb50f6a7d\\\"\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://vod-api.lingopal-dev.com",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "X-API-Key"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "46f9c037-31e4-4762-882b-8ff14fb7b455",
+    "name": "Lingopal API v2 Jobs Upload API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Lingopal API for uploading media and documents, starting translation workflows, generating subtitles, translating text, and downloading generated artifacts.",
+      "type": "text/plain"
+    }
+  }
+}

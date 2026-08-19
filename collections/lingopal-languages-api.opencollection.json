@@ -1,0 +1,50 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Lingopal API v2 Jobs Languages API",
+    "version": "v2"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "X-API-Key",
+      "value": "{{X-API-Key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Languages",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List supported languages",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://vod-api.lingopal-dev.com/v2/languages/:language_type",
+            "params": [
+              {
+                "name": "language_type",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns language capabilities filtered by dubbing, text, or all supported workflows."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

@@ -1,0 +1,47 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Lingopal API v2 Jobs Translate API",
+    "version": "v2"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "X-API-Key",
+      "value": "{{X-API-Key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Translate",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Translate text",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://vod-api.lingopal-dev.com/v2/translate/text",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Translates one to 100 text inputs with a shared target language and optional context. Use `GET /v2/languages/text` to list supported languages."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

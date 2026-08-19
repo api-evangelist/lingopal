@@ -2,11 +2,10 @@ generated: '2026-07-19'
 method: derived
 status: candidate
 source: openapi/lingopal-openapi-original.json
-notes: >-
-  Lingopal publishes no official hosted or remote MCP server — none is referenced in the
-  docs, the llms.txt, or the lingopal-ai GitHub org (4 public repos, none MCP related).
-  This is an API Evangelist candidate tool surface derived one-to-one from the operations
-  in the Lingopal API v2 OpenAPI. Not a provider claim.
+notes: Lingopal publishes no official hosted or remote MCP server — none is referenced in the docs, the
+  llms.txt, or the lingopal-ai GitHub org (4 public repos, none MCP related). This is an API Evangelist
+  candidate tool surface derived one-to-one from the operations in the Lingopal API v2 OpenAPI. Not a
+  provider claim.
 server:
   name: lingopal
   transport: http
@@ -55,3 +54,9 @@ tools:
 - name: complete_storage_upload
   description: Complete a multipart storage upload with the collected part ETags
   source_operation: openapi/lingopal-openapi-original.json#completeStorageUpload
+deployment:
+  mode: none
+  verified: derived
+  tools: 13
+  checked: '2026-08-12'
+  source: catalog MCP census

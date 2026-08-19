@@ -1,0 +1,266 @@
+{
+  "item": [
+    {
+      "id": "55499baa-e724-4870-be7b-65bc11469b95",
+      "name": "Translate",
+      "description": {
+        "content": "Start media, document, subtitle, and text translation workflows.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "4228e515-b243-4a34-a5a6-2ddfd8fab9dd",
+          "name": "Translate text",
+          "request": {
+            "name": "Translate text",
+            "description": {
+              "content": "Translates one to 100 text inputs with a shared target language and optional context. Use `GET /v2/languages/text` to list supported languages.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v2",
+                "translate",
+                "text"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "X-API-Key"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"texts\": [\n    \"<string>\"\n  ],\n  \"target_language\": \"<string>\",\n  \"source_language\": \"<string>\",\n  \"context\": \"<string>\",\n  \"deduct_credits\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "c7ddcc68-3f86-4c18-a8fd-cf99f076de9d",
+              "name": "Completed text translations.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v2",
+                    "translate",
+                    "text"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texts\": [\n    \"Hello world\",\n    \"Welcome to Lingopal\"\n  ],\n  \"target_language\": \"es\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"translations\": [\n    {\n      \"source_text\": \"string\",\n      \"translated_text\": \"string\",\n      \"target_language\": \"string\"\n    },\n    {\n      \"source_text\": \"string\",\n      \"translated_text\": \"string\",\n      \"target_language\": \"string\"\n    }\n  ],\n  \"workflow\": \"translate_text\",\n  \"status\": \"completed\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "db1b5aec-1b77-478c-bc31-2b2513c20a41",
+              "name": "Missing or invalid authentication token.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v2",
+                    "translate",
+                    "text"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texts\": [\n    \"Hello world\",\n    \"Welcome to Lingopal\"\n  ],\n  \"target_language\": \"es\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "5473c194-0af2-4d7e-bcb3-ae0987964ce0",
+              "name": "Request validation error.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v2",
+                    "translate",
+                    "text"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texts\": [\n    \"Hello world\",\n    \"Welcome to Lingopal\"\n  ],\n  \"target_language\": \"es\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://vod-api.lingopal-dev.com",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "X-API-Key"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "9fbcd881-eaa8-4db4-bad4-070e5295c44f",
+    "name": "Lingopal API v2 Jobs Translate API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Lingopal API for uploading media and documents, starting translation workflows, generating subtitles, translating text, and downloading generated artifacts.",
+      "type": "text/plain"
+    }
+  }
+}

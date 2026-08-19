@@ -1,0 +1,243 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Lingopal API v2 Jobs API",
+    "version": "v2"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "X-API-Key",
+      "value": "{{X-API-Key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Jobs",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Get registered job",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://vod-api.lingopal-dev.com/v2/jobs/:job_id",
+            "params": [
+              {
+                "name": "job_id",
+                "value": "",
+                "type": "path",
+                "description": "Reusable registered job ID."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns metadata for a reusable registered job."
+        },
+        {
+          "info": {
+            "name": "Get registered job status",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://vod-api.lingopal-dev.com/v2/jobs/:job_id/status",
+            "params": [
+              {
+                "name": "job_id",
+                "value": "",
+                "type": "path",
+                "description": "Reusable registered job ID."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns current processing status for a reusable registered job."
+        },
+        {
+          "info": {
+            "name": "Translate a registered job",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://vod-api.lingopal-dev.com/v2/jobs/:job_id/translations",
+            "params": [
+              {
+                "name": "job_id",
+                "value": "",
+                "type": "path",
+                "description": "Reusable registered job ID."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Starts translation for a reusable registered job. Video/audio files use the media translation workflow; document files use the document translation workflow."
+        },
+        {
+          "info": {
+            "name": "Generate subtitles for a registered job",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://vod-api.lingopal-dev.com/v2/jobs/:job_id/subtitles",
+            "params": [
+              {
+                "name": "job_id",
+                "value": "",
+                "type": "path",
+                "description": "Reusable registered job ID."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Starts translated subtitle generation for a reusable registered media file."
+        },
+        {
+          "info": {
+            "name": "Download job transcript",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://vod-api.lingopal-dev.com/v2/jobs/:job_id/outputs/transcript",
+            "params": [
+              {
+                "name": "job_id",
+                "value": "",
+                "type": "path",
+                "description": "Reusable registered job ID."
+              },
+              {
+                "name": "locale",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "layout",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "file_format",
+                "value": "",
+                "type": "query"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Downloads a transcript for a registered job as JSON, CSV, TSV, or plain text."
+        },
+        {
+          "info": {
+            "name": "Export job transcript with selected columns",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://vod-api.lingopal-dev.com/v2/jobs/:job_id/outputs/transcript",
+            "params": [
+              {
+                "name": "job_id",
+                "value": "",
+                "type": "path",
+                "description": "Reusable registered job ID."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Exports a transcript for a registered job with optional include/exclude controls."
+        },
+        {
+          "info": {
+            "name": "Download job subtitle",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://vod-api.lingopal-dev.com/v2/jobs/:job_id/outputs/subtitle",
+            "params": [
+              {
+                "name": "job_id",
+                "value": "",
+                "type": "path",
+                "description": "Reusable registered job ID."
+              },
+              {
+                "name": "file_type",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "locale",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "line_length",
+                "value": "",
+                "type": "query"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Downloads generated subtitles for a registered job as SRT or VTT."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}
