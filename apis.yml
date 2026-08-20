@@ -54,6 +54,8 @@ apis:
   humanURL: https://docs.lingopal.ai/
   baseURL: https://api.lingopal.ai
   tags:
+  - Job
+  tags_raw:
   - Jobs
   properties:
   - type: OpenAPI
@@ -76,6 +78,8 @@ apis:
   humanURL: https://docs.lingopal.ai/
   baseURL: https://api.lingopal.ai
   tags:
+  - Language
+  tags_raw:
   - Languages
   properties:
   - type: OpenAPI
