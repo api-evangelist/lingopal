@@ -1,6 +1,6 @@
-openapi: 3.1.0
+openapi: 3.2.0
 info:
-  title: Lingopal API v2 Jobs Languages API
+  title: Lingopal API v2 Languages API
   description: Lingopal API for uploading media and documents, starting translation workflows, generating subtitles, translating text, and downloading generated artifacts.
   version: v2
 servers:
@@ -48,32 +48,15 @@ paths:
       - APIKeyHeader: []
 components:
   schemas:
-    LanguageInfoResponse:
+    HTTPValidationError:
       properties:
-        request_type:
-          type: string
-          enum:
-          - dubbing
-          - text
-          - all
-          title: Request Type
-          description: Language capability filter used for the response.
-        count:
-          type: integer
-          title: Count
-          description: Number of returned languages.
-        languages:
+        detail:
           items:
-            $ref: '#/components/schemas/app__views__v2__languages__schemas__LanguageInfo'
+            $ref: '#/components/schemas/ValidationError'
           type: array
-          title: Languages
-          description: Supported languages and capability flags.
+          title: Detail
       type: object
-      required:
-      - request_type
-      - count
-      - languages
-      title: LanguageInfoResponse
+      title: HTTPValidationError
     app__views__v2__languages__schemas__LanguageInfo:
       properties:
         locale:
@@ -115,15 +98,32 @@ components:
       - text_support
       - language_id
       title: LanguageInfo
-    HTTPValidationError:
+    LanguageInfoResponse:
       properties:
-        detail:
+        request_type:
+          type: string
+          enum:
+          - dubbing
+          - text
+          - all
+          title: Request Type
+          description: Language capability filter used for the response.
+        count:
+          type: integer
+          title: Count
+          description: Number of returned languages.
+        languages:
           items:
-            $ref: '#/components/schemas/ValidationError'
+            $ref: '#/components/schemas/app__views__v2__languages__schemas__LanguageInfo'
           type: array
-          title: Detail
+          title: Languages
+          description: Supported languages and capability flags.
       type: object
-      title: HTTPValidationError
+      required:
+      - request_type
+      - count
+      - languages
+      title: LanguageInfoResponse
     ValidationError:
       properties:
         loc:

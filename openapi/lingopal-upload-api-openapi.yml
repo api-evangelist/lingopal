@@ -1,6 +1,6 @@
-openapi: 3.1.0
+openapi: 3.2.0
 info:
-  title: Lingopal API v2 Jobs Upload API
+  title: Lingopal API v2 Upload API
   description: Lingopal API for uploading media and documents, starting translation workflows, generating subtitles, translating text, and downloading generated artifacts.
   version: v2
 servers:
@@ -176,197 +176,6 @@ paths:
       - APIKeyHeader: []
 components:
   schemas:
-    CompleteStorageUploadResponse:
-      properties:
-        file_path:
-          type: string
-          title: File Path
-          description: Storage path for the completed storage upload.
-          examples:
-          - presigned_upload/user_123/source.mp4
-        source_url:
-          type: string
-          title: Source Url
-          description: Final URL of the completed uploaded file.
-          examples:
-          - https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4
-      type: object
-      required:
-      - file_path
-      - source_url
-      title: CompleteStorageUploadResponse
-    Body_uploadAndRegisterJob:
-      properties:
-        file:
-          type: string
-          contentMediaType: application/octet-stream
-          title: File
-          description: Small source file to upload and register.
-        name:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Name
-        media_type:
-          anyOf:
-          - type: string
-            enum:
-            - video
-            - audio
-            - document
-          - type: 'null'
-          title: Media Type
-      type: object
-      required:
-      - file
-      title: Body_uploadAndRegisterJob
-    JobRegistrationItem:
-      properties:
-        source_url:
-          type: string
-          title: Source Url
-          description: Uploaded or externally hosted file URL to register as media or a document.
-          examples:
-          - https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4
-        name:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Name
-          description: Optional display name for the registered media/document.
-          examples:
-          - Product demo
-        media_type:
-          anyOf:
-          - type: string
-            enum:
-            - video
-            - audio
-            - document
-          - type: 'null'
-          title: Media Type
-          description: Optional media type hint. If omitted, Lingopal infers it from the file.
-          examples:
-          - video
-      additionalProperties: false
-      type: object
-      required:
-      - source_url
-      title: JobRegistrationItem
-    StorageUploadResponse:
-      properties:
-        source_url:
-          type: string
-          title: Source Url
-          description: Final URL of the uploaded file after upload completion.
-          examples:
-          - https://example-bucket.s3.amazonaws.com/presigned_upload/user/file.mp4
-        file_path:
-          type: string
-          title: File Path
-          description: Storage path for the storage upload. Use this when completing multipart uploads.
-          examples:
-          - presigned_upload/user_123/source.mp4
-        upload_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Upload Id
-          description: S3 multipart upload ID. Present only when the storage upload uses multipart upload.
-          examples:
-          - 2~example-upload-id
-        upload_urls:
-          items:
-            $ref: '#/components/schemas/UploadPart'
-          type: array
-          title: Upload Urls
-          description: Presigned upload URLs, one per upload part.
-        method:
-          type: string
-          const: PUT
-          title: Method
-          description: HTTP method clients must use for each presigned upload URL.
-          default: PUT
-        headers:
-          additionalProperties:
-            type: string
-          type: object
-          title: Headers
-          description: Additional headers clients should send with the upload request.
-          examples:
-          - {}
-      type: object
-      required:
-      - source_url
-      - file_path
-      title: StorageUploadResponse
-    StorageUploadRequest:
-      properties:
-        file_ext:
-          type: string
-          minLength: 1
-          title: File Ext
-          description: Source file extension, with or without a leading dot.
-          examples:
-          - mp4
-          - wav
-          - pdf
-        file_size:
-          anyOf:
-          - type: integer
-            exclusiveMinimum: 0
-          - type: 'null'
-          title: File Size
-          description: Source file size in bytes. Provide this value to request multipart presigned upload URLs; omit it for a single PUT upload URL.
-          examples:
-          - 104857600
-      type: object
-      required:
-      - file_ext
-      title: StorageUploadRequest
-    JobRegistrationRequest:
-      properties:
-        items:
-          items:
-            $ref: '#/components/schemas/JobRegistrationItem'
-          type: array
-          maxItems: 100
-          minItems: 1
-          title: Items
-          description: One or more uploaded files to register.
-      type: object
-      required:
-      - items
-      title: JobRegistrationRequest
-    CompleteStorageUploadRequest:
-      properties:
-        file_path:
-          type: string
-          title: File Path
-          description: Storage path returned by `/v2/storage/uploads` for the multipart upload.
-          examples:
-          - presigned_upload/user_123/source.mp4
-        upload_id:
-          type: string
-          title: Upload Id
-          description: Multipart upload ID returned by `/v2/storage/uploads`.
-          examples:
-          - 2~example-upload-id
-        etags:
-          items:
-            anyOf:
-            - $ref: '#/components/schemas/CompletedUploadPart'
-            - type: string
-          type: array
-          minItems: 1
-          title: Etags
-          description: ETags for uploaded parts, ordered by part number. String ETags are accepted for compatibility.
-      type: object
-      required:
-      - file_path
-      - upload_id
-      - etags
-      title: CompleteStorageUploadRequest
     JobRegistrationResult:
       properties:
         name:
@@ -414,6 +223,35 @@ components:
       - source_url
       - status
       title: JobRegistrationResult
+    CompleteStorageUploadRequest:
+      properties:
+        file_path:
+          type: string
+          title: File Path
+          description: Storage path returned by `/v2/storage/uploads` for the multipart upload.
+          examples:
+          - presigned_upload/user_123/source.mp4
+        upload_id:
+          type: string
+          title: Upload Id
+          description: Multipart upload ID returned by `/v2/storage/uploads`.
+          examples:
+          - 2~example-upload-id
+        etags:
+          items:
+            anyOf:
+            - $ref: '#/components/schemas/CompletedUploadPart'
+            - type: string
+          type: array
+          minItems: 1
+          title: Etags
+          description: ETags for uploaded parts, ordered by part number. String ETags are accepted for compatibility.
+      type: object
+      required:
+      - file_path
+      - upload_id
+      - etags
+      title: CompleteStorageUploadRequest
     CompletedUploadPart:
       properties:
         part_number:
@@ -434,25 +272,121 @@ components:
       - part_number
       - etag
       title: CompletedUploadPart
-    UploadPart:
+    StorageUploadRequest:
       properties:
-        part_number:
-          type: integer
-          title: Part Number
-          description: One-based multipart upload part number.
-          examples:
-          - 1
-        upload_url:
+        file_ext:
           type: string
-          title: Upload Url
-          description: Presigned URL used to upload this part with the documented HTTP method.
+          minLength: 1
+          title: File Ext
+          description: Source file extension, with or without a leading dot.
           examples:
-          - https://example-bucket.s3.amazonaws.com/presigned_upload/user/file.mp4?X-Amz-Signature=...
+          - mp4
+          - wav
+          - pdf
+        file_size:
+          anyOf:
+          - type: integer
+            exclusiveMinimum: 0
+          - type: 'null'
+          title: File Size
+          description: Source file size in bytes. Provide this value to request multipart presigned upload URLs; omit it for a single PUT upload URL.
+          examples:
+          - 104857600
       type: object
       required:
-      - part_number
-      - upload_url
-      title: UploadPart
+      - file_ext
+      title: StorageUploadRequest
+    Body_uploadAndRegisterJob:
+      properties:
+        file:
+          type: string
+          contentMediaType: application/octet-stream
+          title: File
+          description: Small source file to upload and register.
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        media_type:
+          anyOf:
+          - type: string
+            enum:
+            - video
+            - audio
+            - document
+          - type: 'null'
+          title: Media Type
+      type: object
+      required:
+      - file
+      title: Body_uploadAndRegisterJob
+    JobRegistrationRequest:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/JobRegistrationItem'
+          type: array
+          maxItems: 100
+          minItems: 1
+          title: Items
+          description: One or more uploaded files to register.
+      type: object
+      required:
+      - items
+      title: JobRegistrationRequest
+    JobRegistrationItem:
+      properties:
+        source_url:
+          type: string
+          title: Source Url
+          description: Uploaded or externally hosted file URL to register as media or a document.
+          examples:
+          - https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+          description: Optional display name for the registered media/document.
+          examples:
+          - Product demo
+        media_type:
+          anyOf:
+          - type: string
+            enum:
+            - video
+            - audio
+            - document
+          - type: 'null'
+          title: Media Type
+          description: Optional media type hint. If omitted, Lingopal infers it from the file.
+          examples:
+          - video
+      additionalProperties: false
+      type: object
+      required:
+      - source_url
+      title: JobRegistrationItem
+    CompleteStorageUploadResponse:
+      properties:
+        file_path:
+          type: string
+          title: File Path
+          description: Storage path for the completed storage upload.
+          examples:
+          - presigned_upload/user_123/source.mp4
+        source_url:
+          type: string
+          title: Source Url
+          description: Final URL of the completed uploaded file.
+          examples:
+          - https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4
+      type: object
+      required:
+      - file_path
+      - source_url
+      title: CompleteStorageUploadResponse
     JobRegistrationResponse:
       properties:
         message:
@@ -484,6 +418,72 @@ components:
       - error_count
       - results
       title: JobRegistrationResponse
+    StorageUploadResponse:
+      properties:
+        source_url:
+          type: string
+          title: Source Url
+          description: Final URL of the uploaded file after upload completion.
+          examples:
+          - https://example-bucket.s3.amazonaws.com/presigned_upload/user/file.mp4
+        file_path:
+          type: string
+          title: File Path
+          description: Storage path for the storage upload. Use this when completing multipart uploads.
+          examples:
+          - presigned_upload/user_123/source.mp4
+        upload_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Upload Id
+          description: S3 multipart upload ID. Present only when the storage upload uses multipart upload.
+          examples:
+          - 2~example-upload-id
+        upload_urls:
+          items:
+            $ref: '#/components/schemas/UploadPart'
+          type: array
+          title: Upload Urls
+          description: Presigned upload URLs, one per upload part.
+        method:
+          type: string
+          const: PUT
+          title: Method
+          description: HTTP method clients must use for each presigned upload URL.
+          default: PUT
+        headers:
+          additionalProperties:
+            type: string
+          type: object
+          title: Headers
+          description: Additional headers clients should send with the upload request.
+          examples:
+          - {}
+      type: object
+      required:
+      - source_url
+      - file_path
+      title: StorageUploadResponse
+    UploadPart:
+      properties:
+        part_number:
+          type: integer
+          title: Part Number
+          description: One-based multipart upload part number.
+          examples:
+          - 1
+        upload_url:
+          type: string
+          title: Upload Url
+          description: Presigned URL used to upload this part with the documented HTTP method.
+          examples:
+          - https://example-bucket.s3.amazonaws.com/presigned_upload/user/file.mp4?X-Amz-Signature=...
+      type: object
+      required:
+      - part_number
+      - upload_url
+      title: UploadPart
   securitySchemes:
     APIKeyHeader:
       in: header
