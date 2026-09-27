@@ -176,31 +176,22 @@ paths:
       - APIKeyHeader: []
 components:
   schemas:
-    JobRegistrationResult:
+    JobRegistrationItem:
       properties:
-        name:
-          type: string
-          title: Name
-          description: Display name used for the registered item.
         source_url:
           type: string
           title: Source Url
-          description: Source URL submitted for this item.
-        status:
-          type: string
-          enum:
-          - registered
-          - error
-          title: Status
-          description: Whether this item was registered or failed validation/registration.
-        job_id:
+          description: Uploaded or externally hosted file URL to register as media or a document.
+          examples:
+          - https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4
+        name:
           anyOf:
           - type: string
           - type: 'null'
-          title: Job Id
-          description: Reusable registered job ID when registration succeeds.
+          title: Name
+          description: Optional display name for the registered media/document.
           examples:
-          - job_123
+          - Product demo
         media_type:
           anyOf:
           - type: string
@@ -210,19 +201,14 @@ components:
             - document
           - type: 'null'
           title: Media Type
-          description: Detected or supplied media type for the registered item.
-        error:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Error
-          description: Per-item error message when `status` is `error`.
+          description: Optional media type hint. If omitted, Lingopal infers it from the file.
+          examples:
+          - video
+      additionalProperties: false
       type: object
       required:
-      - name
       - source_url
-      - status
-      title: JobRegistrationResult
+      title: JobRegistrationItem
     CompleteStorageUploadRequest:
       properties:
         file_path:
@@ -272,42 +258,31 @@ components:
       - part_number
       - etag
       title: CompletedUploadPart
-    StorageUploadRequest:
+    JobRegistrationResult:
       properties:
-        file_ext:
-          type: string
-          minLength: 1
-          title: File Ext
-          description: Source file extension, with or without a leading dot.
-          examples:
-          - mp4
-          - wav
-          - pdf
-        file_size:
-          anyOf:
-          - type: integer
-            exclusiveMinimum: 0
-          - type: 'null'
-          title: File Size
-          description: Source file size in bytes. Provide this value to request multipart presigned upload URLs; omit it for a single PUT upload URL.
-          examples:
-          - 104857600
-      type: object
-      required:
-      - file_ext
-      title: StorageUploadRequest
-    Body_uploadAndRegisterJob:
-      properties:
-        file:
-          type: string
-          contentMediaType: application/octet-stream
-          title: File
-          description: Small source file to upload and register.
         name:
+          type: string
+          title: Name
+          description: Display name used for the registered item.
+        source_url:
+          type: string
+          title: Source Url
+          description: Source URL submitted for this item.
+        status:
+          type: string
+          enum:
+          - registered
+          - error
+          title: Status
+          description: Whether this item was registered or failed validation/registration.
+        job_id:
           anyOf:
           - type: string
           - type: 'null'
-          title: Name
+          title: Job Id
+          description: Reusable registered job ID when registration succeeds.
+          examples:
+          - job_123
         media_type:
           anyOf:
           - type: string
@@ -317,107 +292,19 @@ components:
             - document
           - type: 'null'
           title: Media Type
-      type: object
-      required:
-      - file
-      title: Body_uploadAndRegisterJob
-    JobRegistrationRequest:
-      properties:
-        items:
-          items:
-            $ref: '#/components/schemas/JobRegistrationItem'
-          type: array
-          maxItems: 100
-          minItems: 1
-          title: Items
-          description: One or more uploaded files to register.
-      type: object
-      required:
-      - items
-      title: JobRegistrationRequest
-    JobRegistrationItem:
-      properties:
-        source_url:
-          type: string
-          title: Source Url
-          description: Uploaded or externally hosted file URL to register as media or a document.
-          examples:
-          - https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4
-        name:
+          description: Detected or supplied media type for the registered item.
+        error:
           anyOf:
           - type: string
           - type: 'null'
-          title: Name
-          description: Optional display name for the registered media/document.
-          examples:
-          - Product demo
-        media_type:
-          anyOf:
-          - type: string
-            enum:
-            - video
-            - audio
-            - document
-          - type: 'null'
-          title: Media Type
-          description: Optional media type hint. If omitted, Lingopal infers it from the file.
-          examples:
-          - video
-      additionalProperties: false
+          title: Error
+          description: Per-item error message when `status` is `error`.
       type: object
       required:
+      - name
       - source_url
-      title: JobRegistrationItem
-    CompleteStorageUploadResponse:
-      properties:
-        file_path:
-          type: string
-          title: File Path
-          description: Storage path for the completed storage upload.
-          examples:
-          - presigned_upload/user_123/source.mp4
-        source_url:
-          type: string
-          title: Source Url
-          description: Final URL of the completed uploaded file.
-          examples:
-          - https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4
-      type: object
-      required:
-      - file_path
-      - source_url
-      title: CompleteStorageUploadResponse
-    JobRegistrationResponse:
-      properties:
-        message:
-          type: string
-          title: Message
-          description: Human-readable summary of the batch registration result.
-        registered_count:
-          type: integer
-          title: Registered Count
-          description: Number of items successfully registered.
-          examples:
-          - 1
-        error_count:
-          type: integer
-          title: Error Count
-          description: Number of items that failed registration.
-          examples:
-          - 0
-        results:
-          items:
-            $ref: '#/components/schemas/JobRegistrationResult'
-          type: array
-          title: Results
-          description: Per-item registration results.
-      type: object
-      required:
-      - message
-      - registered_count
-      - error_count
-      - results
-      title: JobRegistrationResponse
+      - status
+      title: JobRegistrationResult
     StorageUploadResponse:
       properties:
         source_url:
@@ -484,6 +371,119 @@ components:
       - part_number
       - upload_url
       title: UploadPart
+    StorageUploadRequest:
+      properties:
+        file_ext:
+          type: string
+          minLength: 1
+          title: File Ext
+          description: Source file extension, with or without a leading dot.
+          examples:
+          - mp4
+          - wav
+          - pdf
+        file_size:
+          anyOf:
+          - type: integer
+            exclusiveMinimum: 0
+          - type: 'null'
+          title: File Size
+          description: Source file size in bytes. Provide this value to request multipart presigned upload URLs; omit it for a single PUT upload URL.
+          examples:
+          - 104857600
+      type: object
+      required:
+      - file_ext
+      title: StorageUploadRequest
+    JobRegistrationResponse:
+      properties:
+        message:
+          type: string
+          title: Message
+          description: Human-readable summary of the batch registration result.
+        registered_count:
+          type: integer
+          title: Registered Count
+          description: Number of items successfully registered.
+          examples:
+          - 1
+        error_count:
+          type: integer
+          title: Error Count
+          description: Number of items that failed registration.
+          examples:
+          - 0
+        results:
+          items:
+            $ref: '#/components/schemas/JobRegistrationResult'
+          type: array
+          title: Results
+          description: Per-item registration results.
+      type: object
+      required:
+      - message
+      - registered_count
+      - error_count
+      - results
+      title: JobRegistrationResponse
+    Body_uploadAndRegisterJob:
+      properties:
+        file:
+          type: string
+          contentMediaType: application/octet-stream
+          title: File
+          description: Small source file to upload and register.
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        media_type:
+          anyOf:
+          - type: string
+            enum:
+            - video
+            - audio
+            - document
+          - type: 'null'
+          title: Media Type
+      type: object
+      required:
+      - file
+      title: Body_uploadAndRegisterJob
+    JobRegistrationRequest:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/JobRegistrationItem'
+          type: array
+          maxItems: 100
+          minItems: 1
+          title: Items
+          description: One or more uploaded files to register.
+      type: object
+      required:
+      - items
+      title: JobRegistrationRequest
+    CompleteStorageUploadResponse:
+      properties:
+        file_path:
+          type: string
+          title: File Path
+          description: Storage path for the completed storage upload.
+          examples:
+          - presigned_upload/user_123/source.mp4
+        source_url:
+          type: string
+          title: Source Url
+          description: Final URL of the completed uploaded file.
+          examples:
+          - https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4
+      type: object
+      required:
+      - file_path
+      - source_url
+      title: CompleteStorageUploadResponse
   securitySchemes:
     APIKeyHeader:
       in: header

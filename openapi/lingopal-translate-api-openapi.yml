@@ -59,6 +59,26 @@ paths:
       - APIKeyHeader: []
 components:
   schemas:
+    TextTranslation:
+      properties:
+        source_text:
+          type: string
+          title: Source Text
+          description: Original source text.
+        translated_text:
+          type: string
+          title: Translated Text
+          description: Translated text.
+        target_language:
+          type: string
+          title: Target Language
+          description: Target locale code for this translation.
+      type: object
+      required:
+      - source_text
+      - translated_text
+      - target_language
+      title: TextTranslation
     TextTranslationResponse:
       properties:
         workflow:
@@ -81,26 +101,6 @@ components:
       required:
       - translations
       title: TextTranslationResponse
-    TextTranslation:
-      properties:
-        source_text:
-          type: string
-          title: Source Text
-          description: Original source text.
-        translated_text:
-          type: string
-          title: Translated Text
-          description: Translated text.
-        target_language:
-          type: string
-          title: Target Language
-          description: Target locale code for this translation.
-      type: object
-      required:
-      - source_text
-      - translated_text
-      - target_language
-      title: TextTranslation
     TranslateTextRequest:
       properties:
         texts:

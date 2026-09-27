@@ -325,6 +325,236 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
+    JobWorkflowStatus:
+      properties:
+        status:
+          type: string
+          enum:
+          - queued
+          - processing
+          - completed
+          - failed
+          title: Status
+          description: Current aggregate workflow status.
+        languages:
+          items:
+            $ref: '#/components/schemas/JobLanguageStatus'
+          type: array
+          title: Languages
+      type: object
+      required:
+      - status
+      title: JobWorkflowStatus
+    TranscriptDownloadRequest:
+      properties:
+        locale:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Locale
+          description: Transcript locale to export. Use `source` for the original transcript.
+          default: source
+          examples:
+          - source
+          - es
+        layout:
+          type: string
+          enum:
+          - compact
+          - detailed
+          title: Layout
+          description: Transcript response layout for JSON-style exports.
+          default: compact
+        file_format:
+          type: string
+          enum:
+          - json
+          - csv
+          - tsv
+          - txt
+          title: File Format
+          description: Transcript download format.
+          default: txt
+        include_columns:
+          anyOf:
+          - items:
+              type: string
+              enum:
+              - speaker_id
+              - start_time
+              - end_time
+              - text
+              - gender
+              - emotion
+            type: array
+          - type: 'null'
+          title: Include Columns
+          description: Additional transcript columns to include in the export.
+        exclude_columns:
+          anyOf:
+          - items:
+              type: string
+              enum:
+              - speaker_id
+              - start_time
+              - end_time
+              - text
+              - gender
+              - emotion
+            type: array
+          - type: 'null'
+          title: Exclude Columns
+          description: Transcript columns to omit from the export.
+      type: object
+      title: TranscriptDownloadRequest
+    JobLanguageStatus:
+      properties:
+        target_language:
+          type: string
+          title: Target Language
+          description: Target locale code.
+        status:
+          type: string
+          enum:
+          - queued
+          - processing
+          - completed
+          - failed
+          title: Status
+          description: Current status for this language.
+      type: object
+      required:
+      - target_language
+      - status
+      title: JobLanguageStatus
+    TranslateSubtitlesRequest:
+      properties:
+        target_languages:
+          items:
+            type: string
+          type: array
+          minItems: 1
+          title: Target Languages
+          description: 'Target locale codes. Use `GET /v2/languages/text` to list supported subtitle translation languages. Alias accepted: `languages`.'
+          examples:
+          - - es
+            - fr
+        format:
+          type: string
+          enum:
+          - srt
+          - vtt
+          title: Format
+          description: Preferred subtitle output format.
+          default: srt
+        reset:
+          type: boolean
+          title: Reset
+          description: Whether to prune existing subtitle target state before starting processing.
+          default: false
+        burn_subtitles:
+          type: boolean
+          title: Burn Subtitles
+          description: Whether to burn generated subtitles into media output when supported.
+          default: false
+        include_source_language:
+          type: boolean
+          title: Include Source Language
+          description: Whether to include source-language subtitles in generated outputs when supported.
+          default: false
+        word_count_per_line:
+          type: integer
+          exclusiveMinimum: 0
+          title: Word Count Per Line
+          description: Maximum subtitle words per line.
+          default: 7
+      type: object
+      required:
+      - target_languages
+      title: TranslateSubtitlesRequest
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    TranslationJobResponse:
+      properties:
+        workflow:
+          type: string
+          enum:
+          - translate_media
+          - translate_text
+          - translate_document
+          - translate_subtitles
+          title: Workflow
+          description: Translation workflow that was started.
+        status:
+          type: string
+          enum:
+          - queued
+          - started
+          - completed
+          - error
+          title: Status
+          description: Current workflow status.
+        job_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Job Id
+          description: Reusable registered job ID associated with this workflow.
+        target_languages:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Target Languages
+          description: Target locale codes requested for this workflow.
+        format:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Format
+          description: Requested output format when applicable.
+        message:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Message
+          description: Human-readable status message.
+        links:
+          additionalProperties:
+            type: string
+          type: object
+          title: Links
+          description: Related API links.
+      type: object
+      required:
+      - workflow
+      - status
+      title: TranslationJobResponse
     JobStatusResponse:
       properties:
         job_id:
@@ -395,52 +625,6 @@ components:
       - job_type
       - status
       title: JobStatusResponse
-    ValidationError:
-      properties:
-        loc:
-          items:
-            anyOf:
-            - type: string
-            - type: integer
-          type: array
-          title: Location
-        msg:
-          type: string
-          title: Message
-        type:
-          type: string
-          title: Error Type
-        input:
-          title: Input
-        ctx:
-          type: object
-          title: Context
-      type: object
-      required:
-      - loc
-      - msg
-      - type
-      title: ValidationError
-    JobWorkflowStatus:
-      properties:
-        status:
-          type: string
-          enum:
-          - queued
-          - processing
-          - completed
-          - failed
-          title: Status
-          description: Current aggregate workflow status.
-        languages:
-          items:
-            $ref: '#/components/schemas/JobLanguageStatus'
-          type: array
-          title: Languages
-      type: object
-      required:
-      - status
-      title: JobWorkflowStatus
     HTTPValidationError:
       properties:
         detail:
@@ -450,113 +634,56 @@ components:
           title: Detail
       type: object
       title: HTTPValidationError
-    TranscriptDownloadRequest:
+    JobResponse:
       properties:
-        locale:
+        job_id:
+          type: string
+          title: Job Id
+          description: Reusable registered job ID.
+        name:
+          type: string
+          title: Name
+          description: Job display name.
+        job_type:
+          type: string
+          enum:
+          - video
+          - audio
+          - document
+          title: Job Type
+          description: Registered job type.
+        source_url:
           anyOf:
           - type: string
           - type: 'null'
-          title: Locale
-          description: Transcript locale to export. Use `source` for the original transcript.
-          default: source
-          examples:
-          - source
-          - es
-        layout:
-          type: string
-          enum:
-          - compact
-          - detailed
-          title: Layout
-          description: Transcript response layout for JSON-style exports.
-          default: compact
-        file_format:
-          type: string
-          enum:
-          - json
-          - csv
-          - tsv
-          - txt
-          title: File Format
-          description: Transcript download format.
-          default: txt
-        include_columns:
+          title: Source Url
+          description: Original or registered source URL.
+        created_at:
           anyOf:
-          - items:
-              type: string
-              enum:
-              - speaker_id
-              - start_time
-              - end_time
-              - text
-              - gender
-              - emotion
-            type: array
+          - type: string
+            format: date-time
           - type: 'null'
-          title: Include Columns
-          description: Additional transcript columns to include in the export.
-        exclude_columns:
+          title: Created At
+          description: Job creation timestamp.
+        updated_at:
           anyOf:
-          - items:
-              type: string
-              enum:
-              - speaker_id
-              - start_time
-              - end_time
-              - text
-              - gender
-              - emotion
-            type: array
+          - type: string
+            format: date-time
           - type: 'null'
-          title: Exclude Columns
-          description: Transcript columns to omit from the export.
-      type: object
-      title: TranscriptDownloadRequest
-    TranslateSubtitlesRequest:
-      properties:
-        target_languages:
-          items:
+          title: Updated At
+          description: Job update timestamp.
+        links:
+          additionalProperties:
             type: string
-          type: array
-          minItems: 1
-          title: Target Languages
-          description: 'Target locale codes. Use `GET /v2/languages/text` to list supported subtitle translation languages. Alias accepted: `languages`.'
-          examples:
-          - - es
-            - fr
-        format:
-          type: string
-          enum:
-          - srt
-          - vtt
-          title: Format
-          description: Preferred subtitle output format.
-          default: srt
-        reset:
-          type: boolean
-          title: Reset
-          description: Whether to prune existing subtitle target state before starting processing.
-          default: false
-        burn_subtitles:
-          type: boolean
-          title: Burn Subtitles
-          description: Whether to burn generated subtitles into media output when supported.
-          default: false
-        include_source_language:
-          type: boolean
-          title: Include Source Language
-          description: Whether to include source-language subtitles in generated outputs when supported.
-          default: false
-        word_count_per_line:
-          type: integer
-          exclusiveMinimum: 0
-          title: Word Count Per Line
-          description: Maximum subtitle words per line.
-          default: 7
+          type: object
+          title: Links
+          description: Related v2 job links.
       type: object
       required:
-      - target_languages
-      title: TranslateSubtitlesRequest
+      - job_id
+      - name
+      - job_type
+      title: JobResponse
     TranslateJobRequest:
       properties:
         target_languages:
@@ -615,133 +742,6 @@ components:
       required:
       - target_languages
       title: TranslateJobRequest
-    TranslationJobResponse:
-      properties:
-        workflow:
-          type: string
-          enum:
-          - translate_media
-          - translate_text
-          - translate_document
-          - translate_subtitles
-          title: Workflow
-          description: Translation workflow that was started.
-        status:
-          type: string
-          enum:
-          - queued
-          - started
-          - completed
-          - error
-          title: Status
-          description: Current workflow status.
-        job_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Job Id
-          description: Reusable registered job ID associated with this workflow.
-        target_languages:
-          anyOf:
-          - items:
-              type: string
-            type: array
-          - type: 'null'
-          title: Target Languages
-          description: Target locale codes requested for this workflow.
-        format:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Format
-          description: Requested output format when applicable.
-        message:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Message
-          description: Human-readable status message.
-        links:
-          additionalProperties:
-            type: string
-          type: object
-          title: Links
-          description: Related API links.
-      type: object
-      required:
-      - workflow
-      - status
-      title: TranslationJobResponse
-    JobResponse:
-      properties:
-        job_id:
-          type: string
-          title: Job Id
-          description: Reusable registered job ID.
-        name:
-          type: string
-          title: Name
-          description: Job display name.
-        job_type:
-          type: string
-          enum:
-          - video
-          - audio
-          - document
-          title: Job Type
-          description: Registered job type.
-        source_url:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Source Url
-          description: Original or registered source URL.
-        created_at:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
-          title: Created At
-          description: Job creation timestamp.
-        updated_at:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
-          title: Updated At
-          description: Job update timestamp.
-        links:
-          additionalProperties:
-            type: string
-          type: object
-          title: Links
-          description: Related v2 job links.
-      type: object
-      required:
-      - job_id
-      - name
-      - job_type
-      title: JobResponse
-    JobLanguageStatus:
-      properties:
-        target_language:
-          type: string
-          title: Target Language
-          description: Target locale code.
-        status:
-          type: string
-          enum:
-          - queued
-          - processing
-          - completed
-          - failed
-          title: Status
-          description: Current status for this language.
-      type: object
-      required:
-      - target_language
-      - status
-      title: JobLanguageStatus
   securitySchemes:
     APIKeyHeader:
       in: header
