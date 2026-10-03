@@ -325,8 +325,12 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
-    JobWorkflowStatus:
+    JobLanguageStatus:
       properties:
+        target_language:
+          type: string
+          title: Target Language
+          description: Target locale code.
         status:
           type: string
           enum:
@@ -335,16 +339,12 @@ components:
           - completed
           - failed
           title: Status
-          description: Current aggregate workflow status.
-        languages:
-          items:
-            $ref: '#/components/schemas/JobLanguageStatus'
-          type: array
-          title: Languages
+          description: Current status for this language.
       type: object
       required:
+      - target_language
       - status
-      title: JobWorkflowStatus
+      title: JobLanguageStatus
     TranscriptDownloadRequest:
       properties:
         locale:
@@ -407,26 +407,6 @@ components:
           description: Transcript columns to omit from the export.
       type: object
       title: TranscriptDownloadRequest
-    JobLanguageStatus:
-      properties:
-        target_language:
-          type: string
-          title: Target Language
-          description: Target locale code.
-        status:
-          type: string
-          enum:
-          - queued
-          - processing
-          - completed
-          - failed
-          title: Status
-          description: Current status for this language.
-      type: object
-      required:
-      - target_language
-      - status
-      title: JobLanguageStatus
     TranslateSubtitlesRequest:
       properties:
         target_languages:
@@ -472,6 +452,85 @@ components:
       required:
       - target_languages
       title: TranslateSubtitlesRequest
+    JobResponse:
+      properties:
+        job_id:
+          type: string
+          title: Job Id
+          description: Reusable registered job ID.
+        name:
+          type: string
+          title: Name
+          description: Job display name.
+        job_type:
+          type: string
+          enum:
+          - video
+          - audio
+          - document
+          title: Job Type
+          description: Registered job type.
+        source_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Source Url
+          description: Original or registered source URL.
+        created_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Created At
+          description: Job creation timestamp.
+        updated_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Updated At
+          description: Job update timestamp.
+        links:
+          additionalProperties:
+            type: string
+          type: object
+          title: Links
+          description: Related v2 job links.
+      type: object
+      required:
+      - job_id
+      - name
+      - job_type
+      title: JobResponse
+    JobWorkflowStatus:
+      properties:
+        status:
+          type: string
+          enum:
+          - queued
+          - processing
+          - completed
+          - failed
+          title: Status
+          description: Current aggregate workflow status.
+        languages:
+          items:
+            $ref: '#/components/schemas/JobLanguageStatus'
+          type: array
+          title: Languages
+      type: object
+      required:
+      - status
+      title: JobWorkflowStatus
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
     ValidationError:
       properties:
         loc:
@@ -625,65 +684,6 @@ components:
       - job_type
       - status
       title: JobStatusResponse
-    HTTPValidationError:
-      properties:
-        detail:
-          items:
-            $ref: '#/components/schemas/ValidationError'
-          type: array
-          title: Detail
-      type: object
-      title: HTTPValidationError
-    JobResponse:
-      properties:
-        job_id:
-          type: string
-          title: Job Id
-          description: Reusable registered job ID.
-        name:
-          type: string
-          title: Name
-          description: Job display name.
-        job_type:
-          type: string
-          enum:
-          - video
-          - audio
-          - document
-          title: Job Type
-          description: Registered job type.
-        source_url:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Source Url
-          description: Original or registered source URL.
-        created_at:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
-          title: Created At
-          description: Job creation timestamp.
-        updated_at:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
-          title: Updated At
-          description: Job update timestamp.
-        links:
-          additionalProperties:
-            type: string
-          type: object
-          title: Links
-          description: Related v2 job links.
-      type: object
-      required:
-      - job_id
-      - name
-      - job_type
-      title: JobResponse
     TranslateJobRequest:
       properties:
         target_languages:

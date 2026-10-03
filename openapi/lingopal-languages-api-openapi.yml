@@ -57,6 +57,32 @@ components:
           title: Detail
       type: object
       title: HTTPValidationError
+    LanguageInfoResponse:
+      properties:
+        request_type:
+          type: string
+          enum:
+          - dubbing
+          - text
+          - all
+          title: Request Type
+          description: Language capability filter used for the response.
+        count:
+          type: integer
+          title: Count
+          description: Number of returned languages.
+        languages:
+          items:
+            $ref: '#/components/schemas/app__views__v2__languages__schemas__LanguageInfo'
+          type: array
+          title: Languages
+          description: Supported languages and capability flags.
+      type: object
+      required:
+      - request_type
+      - count
+      - languages
+      title: LanguageInfoResponse
     app__views__v2__languages__schemas__LanguageInfo:
       properties:
         locale:
@@ -98,32 +124,6 @@ components:
       - text_support
       - language_id
       title: LanguageInfo
-    LanguageInfoResponse:
-      properties:
-        request_type:
-          type: string
-          enum:
-          - dubbing
-          - text
-          - all
-          title: Request Type
-          description: Language capability filter used for the response.
-        count:
-          type: integer
-          title: Count
-          description: Number of returned languages.
-        languages:
-          items:
-            $ref: '#/components/schemas/app__views__v2__languages__schemas__LanguageInfo'
-          type: array
-          title: Languages
-          description: Supported languages and capability flags.
-      type: object
-      required:
-      - request_type
-      - count
-      - languages
-      title: LanguageInfoResponse
     ValidationError:
       properties:
         loc:
