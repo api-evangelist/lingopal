@@ -159,6 +159,8 @@ maintainers:
 - FN: APIs.json
   email: info@apis.io
 common:
+- type: Plans
+  url: plans/lingopal-plans-pricing.yml
 - type: CapabilityMap
   url: capabilities/lingopal-capability-edges.yml
   name: Lingopal Business Capability Map
