@@ -1,0 +1,81 @@
+# Pricing transcribed from the provider's own page — see provenance. Numbers are quoted, not derived.
+generated: '2026-10-07'
+method: searched
+source: https://lingopal.ai/pricing
+sources:
+- https://lingopal.ai/pricing
+provenance:
+  tool: all/0-working/economics/harvest_pricing.py
+  run: 20261007T104522
+  grounding: every price_text was found verbatim in the fetched page text
+audience: business-product
+pricing_basis: tiered-subscription
+delivery:
+  delivery: managed
+  method: page
+  read: '2026-10-07'
+  managed_tier: Personal
+published: true
+note: Pricing page shows monthly/quarterly/yearly/enterprise toggles; Enterprise tier has no listed price.
+  Personal shown as SALE $11 with $22 struck-through.
+plan_count: 4
+currency: USD
+plans:
+- name: Explore-Free
+  price_text: Explore-Free
+  period: month
+  included_quota: 30 minutes credits/month, 1 language max VOD, Community Support
+- name: Personal
+  price_text: $11
+  price: 11
+  currency: USD
+  period: month
+  included_quota: Everything in Free, 30 minutes credits/month, No Watermark, Email Support, VOD Download
+- name: Creator
+  price_text: $79 / month
+  price: 79
+  currency: USD
+  period: month
+  included_quota: 40 minutes credits/month, 3 languages max VOD, SRT/VTT Export, Beta language support,
+    Priority processing
+- name: Studio
+  price_text: $249 / month
+  price: 249
+  currency: USD
+  period: month
+  included_quota: Glossary tab, 120 minutes credits/month, 5 languages max VOD, Priority Email Support
+x-canonical:
+  generated: '2026-10-08'
+  vocabulary: all/0-working/economics/plans-canonical.yml
+  models:
+  - subscription
+  units: []
+  plans:
+  - name: Explore-Free
+    access: other
+    model: unstated
+    model_how: derived
+    units: []
+    periods:
+    - month
+  - name: Personal
+    access: other
+    model: subscription
+    model_how: derived
+    units: []
+    periods:
+    - month
+  - name: Creator
+    access: other
+    model: subscription
+    model_how: derived
+    units: []
+    periods:
+    - month
+  - name: Studio
+    access: other
+    model: subscription
+    model_how: derived
+    units: []
+    periods:
+    - month
