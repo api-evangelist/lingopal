@@ -59,6 +59,48 @@ paths:
       - APIKeyHeader: []
 components:
   schemas:
+    TextTranslation:
+      properties:
+        source_text:
+          type: string
+          title: Source Text
+          description: Original source text.
+        translated_text:
+          type: string
+          title: Translated Text
+          description: Translated text.
+        target_language:
+          type: string
+          title: Target Language
+          description: Target locale code for this translation.
+      type: object
+      required:
+      - source_text
+      - translated_text
+      - target_language
+      title: TextTranslation
+    TextTranslationResponse:
+      properties:
+        workflow:
+          type: string
+          const: translate_text
+          title: Workflow
+          default: translate_text
+        status:
+          type: string
+          const: completed
+          title: Status
+          default: completed
+        translations:
+          items:
+            $ref: '#/components/schemas/TextTranslation'
+          type: array
+          title: Translations
+          description: Completed text translations.
+      type: object
+      required:
+      - translations
+      title: TextTranslationResponse
     TranslateTextRequest:
       properties:
         texts:
@@ -105,48 +147,6 @@ components:
       - texts
       - target_language
       title: TranslateTextRequest
-    TextTranslation:
-      properties:
-        source_text:
-          type: string
-          title: Source Text
-          description: Original source text.
-        translated_text:
-          type: string
-          title: Translated Text
-          description: Translated text.
-        target_language:
-          type: string
-          title: Target Language
-          description: Target locale code for this translation.
-      type: object
-      required:
-      - source_text
-      - translated_text
-      - target_language
-      title: TextTranslation
-    TextTranslationResponse:
-      properties:
-        workflow:
-          type: string
-          const: translate_text
-          title: Workflow
-          default: translate_text
-        status:
-          type: string
-          const: completed
-          title: Status
-          default: completed
-        translations:
-          items:
-            $ref: '#/components/schemas/TextTranslation'
-          type: array
-          title: Translations
-          description: Completed text translations.
-      type: object
-      required:
-      - translations
-      title: TextTranslationResponse
   securitySchemes:
     APIKeyHeader:
       in: header

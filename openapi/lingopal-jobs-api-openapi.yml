@@ -325,73 +325,46 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
-    TranslateJobRequest:
+    JobWorkflowStatus:
       properties:
-        target_languages:
+        status:
+          type: string
+          enum:
+          - queued
+          - processing
+          - completed
+          - failed
+          title: Status
+          description: Current aggregate workflow status.
+        languages:
           items:
-            type: string
+            $ref: '#/components/schemas/JobLanguageStatus'
           type: array
-          minItems: 1
-          title: Target Languages
-          description: 'Target locale codes. Alias accepted: `languages`. The job type determines whether media or document translation is started.'
-          examples:
-          - - es
-            - fr
-        context:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Context
-          description: Optional context used for document translation.
-        reset:
-          type: boolean
-          title: Reset
-          description: Whether to prune stale target languages before starting processing; active workflow progress is always refreshed for a new run.
-          default: true
-        remove_background_audio:
-          type: boolean
-          title: Remove Background Audio
-          description: Whether to remove background audio for media translation.
-          default: false
-        number_of_speakers:
-          type: integer
-          minimum: 0
-          title: Number Of Speakers
-          description: Optional speaker count hint for media translation. Use 0 to auto-detect.
-          default: 0
-        burn_subtitles_on_source:
-          type: boolean
-          title: Burn Subtitles On Source
-          description: Whether to burn generated subtitles onto source-language media.
-          default: false
-        prepend_ai_warning:
-          type: boolean
-          title: Prepend Ai Warning
-          description: Whether to prepend an AI-generated-content warning.
-          default: false
-        enhance:
-          type: boolean
-          title: Enhance
-          description: Whether to enable media enhancement when supported.
-          default: false
-        experimental_force_accent:
-          type: boolean
-          title: Experimental Force Accent
-          description: Whether to force accent handling for experimental workflows.
-          default: false
+          title: Languages
       type: object
       required:
-      - target_languages
-      title: TranslateJobRequest
-    HTTPValidationError:
+      - status
+      title: JobWorkflowStatus
+    JobLanguageStatus:
       properties:
-        detail:
-          items:
-            $ref: '#/components/schemas/ValidationError'
-          type: array
-          title: Detail
+        target_language:
+          type: string
+          title: Target Language
+          description: Target locale code.
+        status:
+          type: string
+          enum:
+          - queued
+          - processing
+          - completed
+          - failed
+          title: Status
+          description: Current status for this language.
       type: object
-      title: HTTPValidationError
+      required:
+      - target_language
+      - status
+      title: JobLanguageStatus
     JobStatusResponse:
       properties:
         job_id:
@@ -462,109 +435,6 @@ components:
       - job_type
       - status
       title: JobStatusResponse
-    TranslationJobResponse:
-      properties:
-        workflow:
-          type: string
-          enum:
-          - translate_media
-          - translate_text
-          - translate_document
-          - translate_subtitles
-          title: Workflow
-          description: Translation workflow that was started.
-        status:
-          type: string
-          enum:
-          - queued
-          - started
-          - completed
-          - error
-          title: Status
-          description: Current workflow status.
-        job_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Job Id
-          description: Reusable registered job ID associated with this workflow.
-        target_languages:
-          anyOf:
-          - items:
-              type: string
-            type: array
-          - type: 'null'
-          title: Target Languages
-          description: Target locale codes requested for this workflow.
-        format:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Format
-          description: Requested output format when applicable.
-        message:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Message
-          description: Human-readable status message.
-        links:
-          additionalProperties:
-            type: string
-          type: object
-          title: Links
-          description: Related API links.
-      type: object
-      required:
-      - workflow
-      - status
-      title: TranslationJobResponse
-    JobLanguageStatus:
-      properties:
-        target_language:
-          type: string
-          title: Target Language
-          description: Target locale code.
-        status:
-          type: string
-          enum:
-          - queued
-          - processing
-          - completed
-          - failed
-          title: Status
-          description: Current status for this language.
-      type: object
-      required:
-      - target_language
-      - status
-      title: JobLanguageStatus
-    ValidationError:
-      properties:
-        loc:
-          items:
-            anyOf:
-            - type: string
-            - type: integer
-          type: array
-          title: Location
-        msg:
-          type: string
-          title: Message
-        type:
-          type: string
-          title: Error Type
-        input:
-          title: Input
-        ctx:
-          type: object
-          title: Context
-      type: object
-      required:
-      - loc
-      - msg
-      - type
-      title: ValidationError
     JobResponse:
       properties:
         job_id:
@@ -615,6 +485,32 @@ components:
       - name
       - job_type
       title: JobResponse
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
     TranslateSubtitlesRequest:
       properties:
         target_languages:
@@ -660,26 +556,64 @@ components:
       required:
       - target_languages
       title: TranslateSubtitlesRequest
-    JobWorkflowStatus:
+    TranslateJobRequest:
       properties:
-        status:
-          type: string
-          enum:
-          - queued
-          - processing
-          - completed
-          - failed
-          title: Status
-          description: Current aggregate workflow status.
-        languages:
+        target_languages:
           items:
-            $ref: '#/components/schemas/JobLanguageStatus'
+            type: string
           type: array
-          title: Languages
+          minItems: 1
+          title: Target Languages
+          description: 'Target locale codes. Alias accepted: `languages`. The job type determines whether media or document translation is started.'
+          examples:
+          - - es
+            - fr
+        context:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Context
+          description: Optional context used for document translation.
+        reset:
+          type: boolean
+          title: Reset
+          description: Whether to prune stale target languages before starting processing; active workflow progress is always refreshed for a new run.
+          default: true
+        remove_background_audio:
+          type: boolean
+          title: Remove Background Audio
+          description: Whether to remove background audio for media translation.
+          default: false
+        number_of_speakers:
+          type: integer
+          minimum: 0
+          title: Number Of Speakers
+          description: Optional speaker count hint for media translation. Use 0 to auto-detect.
+          default: 0
+        burn_subtitles_on_source:
+          type: boolean
+          title: Burn Subtitles On Source
+          description: Whether to burn generated subtitles onto source-language media.
+          default: false
+        prepend_ai_warning:
+          type: boolean
+          title: Prepend Ai Warning
+          description: Whether to prepend an AI-generated-content warning.
+          default: false
+        enhance:
+          type: boolean
+          title: Enhance
+          description: Whether to enable media enhancement when supported.
+          default: false
+        experimental_force_accent:
+          type: boolean
+          title: Experimental Force Accent
+          description: Whether to force accent handling for experimental workflows.
+          default: false
       type: object
       required:
-      - status
-      title: JobWorkflowStatus
+      - target_languages
+      title: TranslateJobRequest
     TranscriptDownloadRequest:
       properties:
         locale:
@@ -742,6 +676,72 @@ components:
           description: Transcript columns to omit from the export.
       type: object
       title: TranscriptDownloadRequest
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    TranslationJobResponse:
+      properties:
+        workflow:
+          type: string
+          enum:
+          - translate_media
+          - translate_text
+          - translate_document
+          - translate_subtitles
+          title: Workflow
+          description: Translation workflow that was started.
+        status:
+          type: string
+          enum:
+          - queued
+          - started
+          - completed
+          - error
+          title: Status
+          description: Current workflow status.
+        job_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Job Id
+          description: Reusable registered job ID associated with this workflow.
+        target_languages:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Target Languages
+          description: Target locale codes requested for this workflow.
+        format:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Format
+          description: Requested output format when applicable.
+        message:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Message
+          description: Human-readable status message.
+        links:
+          additionalProperties:
+            type: string
+          type: object
+          title: Links
+          description: Related API links.
+      type: object
+      required:
+      - workflow
+      - status
+      title: TranslationJobResponse
   securitySchemes:
     APIKeyHeader:
       in: header
