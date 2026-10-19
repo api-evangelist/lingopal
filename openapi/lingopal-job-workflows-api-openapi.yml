@@ -1,0 +1,731 @@
+openapi: 3.2.0
+info:
+  title: Lingopal API v2 Job Workflows API
+  description: Lingopal v2 public API for text translation, storage uploads, registered jobs, job workflows, and job outputs.
+  version: v2
+servers:
+- url: https://api.lingopal.ai
+security:
+- APIKeyHeader: []
+tags:
+- name: Job Workflows
+  description: Start translation and subtitle workflows for registered jobs.
+paths:
+  /v2/translate/media/{media_id}/languages/{locale}/retry:
+    post:
+      tags:
+      - Job Workflows
+      summary: Retry failed language translation
+      description: Re-triggers translation for a single failed locale. Up to 2 retries are allowed per language; each retry deducts credits for the locale.
+      operationId: retryLanguageTranslation
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: media_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Media Id
+      - name: locale
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Locale
+      responses:
+        '200':
+          description: Started single-locale translation retry workflow.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetryLanguageTranslationResponse'
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: 'Authentication credentials were not provided, or the authenticated account is restricted (detail.code: ACCOUNT_RESTRICTED).'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v2/translate/media/{media_id}/retry:
+    post:
+      tags:
+      - Job Workflows
+      summary: Retry failed media translation
+      description: Re-triggers the parent translate-media workflow for media that failed before any language reached a ready state.
+      operationId: retryMediaTranslation
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: media_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Media Id
+      responses:
+        '200':
+          description: Started media translation retry workflow.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetryMediaTranslationResponse'
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: 'Authentication credentials were not provided, or the authenticated account is restricted (detail.code: ACCOUNT_RESTRICTED).'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v2/jobs/{job_id}/translations:
+    post:
+      tags:
+      - Job Workflows
+      summary: Translate a registered job
+      description: Starts translation for a reusable registered job. Video/audio files use the media translation workflow; NG media translation transcribes the source first when needed. Document files use the document translation workflow.
+      operationId: translateJob
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          description: Reusable registered job ID returned by `/v2/jobs/register` or `/v2/jobs/upload-and-register`.
+          examples:
+          - job_123
+          title: Job Id
+        description: Reusable registered job ID returned by `/v2/jobs/register` or `/v2/jobs/upload-and-register`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranslateJobRequest'
+            examples:
+              translateJobMinimal:
+                summary: Translate registered job minimal
+                description: Start translation for a registered media or document job with required target languages.
+                value:
+                  target_languages:
+                  - es
+                  - fr
+              translateJobNg:
+                summary: Translate with the NG pipeline
+                description: Transcribe the source when needed, then translate it to the requested languages.
+                value:
+                  target_languages:
+                  - es
+                  - fr
+                  pipeline: ng
+                  context: Customer-facing product launch video
+              translateJobWithOptions:
+                summary: Translate registered job with options
+                description: Start job translation with context and media-processing options.
+                value:
+                  target_languages:
+                  - es
+                  - fr
+                  context: Customer-facing product launch video
+                  reset: true
+                  remove_background_audio: false
+                  number_of_speakers: 2
+                  burn_subtitles_on_source: false
+                  prepend_ai_warning: true
+                  experimental_force_accent: false
+      responses:
+        '200':
+          description: Started job translation workflow.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationJobResponse'
+              example:
+                workflow: translate_media
+                status: started
+                job_id: job_123
+                target_languages:
+                - es
+                - fr
+                message: Translation workflow started
+                links:
+                  job: /v2/jobs/job_123
+                  status: /v2/jobs/job_123/status
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: 'Authentication credentials were not provided, or the authenticated account is restricted (detail.code: ACCOUNT_RESTRICTED).'
+        '422':
+          description: Request validation error.
+  /v2/jobs/{job_id}/subtitles:
+    post:
+      tags:
+      - Job Workflows
+      summary: Generate subtitles for a registered job
+      description: Starts translated subtitle generation for a reusable registered media file.
+      operationId: generateJobSubtitles
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          description: Reusable registered job ID returned by `/v2/jobs/register` or `/v2/jobs/upload-and-register`.
+          examples:
+          - job_123
+          title: Job Id
+        description: Reusable registered job ID returned by `/v2/jobs/register` or `/v2/jobs/upload-and-register`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranslateSubtitlesRequest'
+            examples:
+              generateJobSubtitlesMinimal:
+                summary: Generate subtitles minimal
+                description: Start translated subtitle generation for a registered media job.
+                value:
+                  target_languages:
+                  - es
+              generateJobSubtitlesWithOptions:
+                summary: Generate subtitles with options
+                description: Start subtitle generation with output format and subtitle layout controls.
+                value:
+                  target_languages:
+                  - es
+                  - fr
+                  format: srt
+                  reset: true
+                  burn_subtitles: false
+                  include_source_language: false
+                  word_count_per_line: 7
+      responses:
+        '200':
+          description: Started subtitle generation workflow.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationJobResponse'
+              example:
+                workflow: translate_subtitles
+                status: started
+                job_id: job_123
+                target_languages:
+                - es
+                format: srt
+                message: Subtitle workflow started
+                links:
+                  job: /v2/jobs/job_123
+                  status: /v2/jobs/job_123/status
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: 'Authentication credentials were not provided, or the authenticated account is restricted (detail.code: ACCOUNT_RESTRICTED).'
+        '422':
+          description: Request validation error.
+  /v2/jobs/{job_id}/transcriptions:
+    post:
+      tags:
+      - Job Workflows
+      summary: Transcribe a registered job
+      description: Creates source transcript artifacts without translating registered audio or video media.
+      operationId: transcribeJob
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          description: Reusable registered job ID.
+          title: Job Id
+        description: Reusable registered job ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranscribeJobRequest'
+            examples:
+              transcribeJobDefault:
+                summary: Transcribe registered media
+                description: Create source transcript artifacts without translating the media.
+                value:
+                  pipeline: default
+                  number_of_speakers: 0
+                  enhance_transcription: false
+                  reset: true
+              transcribeJobNg:
+                summary: Transcribe with the NG pipeline
+                description: Use the NG transcription deployment for a fresh registered media job.
+                value:
+                  pipeline: ng
+                  reset: true
+      responses:
+        '200':
+          description: Started transcription workflow.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationJobResponse'
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: 'Authentication credentials were not provided, or the authenticated account is restricted (detail.code: ACCOUNT_RESTRICTED).'
+        '422':
+          description: Request validation error.
+  /v2/jobs/{job_id}/republish:
+    post:
+      tags:
+      - Job Workflows
+      summary: Republish translated job media
+      description: Regenerates already translated target media and requires completed translated artifacts for every target.
+      operationId: republishJob
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          description: Reusable registered job ID.
+          title: Job Id
+        description: Reusable registered job ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepublishJobRequest'
+            examples:
+              republishJobMinimal:
+                summary: Republish one translated locale
+                description: Regenerate already translated media for one target locale.
+                value:
+                  target_languages:
+                  - es
+              republishJobWithOptions:
+                summary: Republish with audio options
+                description: Regenerate translated media with the legacy republish controls.
+                value:
+                  target_languages:
+                  - es
+                  - fr
+                  remove_background_audio: true
+                  prepend_ai_warning: false
+                  burn_subtitles_on_source: false
+                  word_count_per_line: 7
+                  experimental_force_accent: false
+                  background_audio_volume: 0.8
+      responses:
+        '200':
+          description: Started republish workflow.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationJobResponse'
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: 'Authentication credentials were not provided, or the authenticated account is restricted (detail.code: ACCOUNT_RESTRICTED).'
+        '422':
+          description: Request validation error.
+components:
+  schemas:
+    TranscribeJobRequest:
+      properties:
+        pipeline:
+          type: string
+          enum:
+          - default
+          - ng
+          title: Pipeline
+          default: default
+        number_of_speakers:
+          type: integer
+          minimum: 0
+          title: Number Of Speakers
+          default: 0
+        enhance_transcription:
+          type: boolean
+          title: Enhance Transcription
+          description: Whether to enhance transcription with the default pipeline.
+          default: false
+        word_count_per_line:
+          type: integer
+          exclusiveMinimum: 0
+          title: Word Count Per Line
+          default: 7
+        media_context:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Media Context
+        reset:
+          type: boolean
+          title: Reset
+          default: true
+      additionalProperties: false
+      type: object
+      title: TranscribeJobRequest
+    RepublishJobRequest:
+      properties:
+        target_languages:
+          items:
+            type: string
+          type: array
+          minItems: 1
+          title: Target Languages
+        reset:
+          type: boolean
+          title: Reset
+          default: true
+        remove_background_audio:
+          type: boolean
+          title: Remove Background Audio
+          default: false
+        prepend_ai_warning:
+          type: boolean
+          title: Prepend Ai Warning
+          default: false
+        burn_subtitles_on_source:
+          type: boolean
+          title: Burn Subtitles On Source
+          default: false
+        word_count_per_line:
+          type: integer
+          exclusiveMinimum: 0
+          title: Word Count Per Line
+          default: 7
+        experimental_force_accent:
+          type: boolean
+          title: Experimental Force Accent
+          default: false
+        background_audio_volume:
+          type: number
+          maximum: 1
+          minimum: 0
+          title: Background Audio Volume
+          default: 1
+      additionalProperties: false
+      type: object
+      required:
+      - target_languages
+      title: RepublishJobRequest
+    TranslateJobRequest:
+      properties:
+        target_languages:
+          items:
+            type: string
+          type: array
+          minItems: 1
+          title: Target Languages
+          description: 'Target locale codes. Alias accepted: `languages`. The job type determines whether media or document translation is started.'
+          examples:
+          - - es
+            - fr
+        context:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Context
+          description: Optional context supplied to media or document translation.
+        reset:
+          type: boolean
+          title: Reset
+          description: Whether to prune stale target languages; active workflow progress is always refreshed for a new run.
+          default: true
+        remove_background_audio:
+          type: boolean
+          title: Remove Background Audio
+          description: Whether to remove background audio for media translation.
+          default: false
+        number_of_speakers:
+          type: integer
+          minimum: 0
+          title: Number Of Speakers
+          description: Optional speaker count hint; use 0 to auto-detect.
+          default: 0
+        burn_subtitles_on_source:
+          type: boolean
+          title: Burn Subtitles On Source
+          description: Whether to burn generated subtitles onto source-language media.
+          default: false
+        prepend_ai_warning:
+          type: boolean
+          title: Prepend Ai Warning
+          description: Whether to prepend an AI-generated-content warning.
+          default: false
+        experimental_force_accent:
+          type: boolean
+          title: Experimental Force Accent
+          description: Whether to force accent handling for experimental workflows.
+          default: false
+        pipeline:
+          type: string
+          enum:
+          - default
+          - ng
+          title: Pipeline
+          default: default
+        source_srt_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Source Srt Url
+        target_srt_urls:
+          anyOf:
+          - additionalProperties:
+              type: string
+            type: object
+          - type: 'null'
+          title: Target Srt Urls
+        clone_voice:
+          type: boolean
+          title: Clone Voice
+          default: false
+        word_count_per_line:
+          type: integer
+          exclusiveMinimum: 0
+          title: Word Count Per Line
+          default: 7
+      additionalProperties: false
+      type: object
+      required:
+      - target_languages
+      title: TranslateJobRequest
+      examples:
+      - burn_subtitles_on_source: false
+        context: Customer-facing product launch video
+        experimental_force_accent: false
+        number_of_speakers: 2
+        prepend_ai_warning: true
+        remove_background_audio: false
+        reset: true
+        target_languages:
+        - es
+        - fr
+    RetryLanguageTranslationResponse:
+      properties:
+        status:
+          type: string
+          const: started
+          title: Status
+          default: started
+        locale:
+          type: string
+          title: Locale
+          description: Locale code being retried.
+        retry_count:
+          type: integer
+          title: Retry Count
+          description: Current retry count after increment.
+        attempts_remaining:
+          type: integer
+          title: Attempts Remaining
+          description: Number of retries still available.
+        message:
+          type: string
+          title: Message
+          description: Deployment name for the triggered workflow.
+      type: object
+      required:
+      - locale
+      - retry_count
+      - attempts_remaining
+      - message
+      title: RetryLanguageTranslationResponse
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    RetryMediaTranslationResponse:
+      properties:
+        status:
+          type: string
+          const: started
+          title: Status
+          default: started
+        media_id:
+          type: string
+          title: Media Id
+          description: Media ID being retried.
+        target_languages:
+          items:
+            type: string
+          type: array
+          title: Target Languages
+          description: Locales included in the retry workflow.
+        message:
+          type: string
+          title: Message
+          description: Deployment name for the triggered workflow.
+      type: object
+      required:
+      - media_id
+      - target_languages
+      - message
+      title: RetryMediaTranslationResponse
+    TranslateSubtitlesRequest:
+      properties:
+        target_languages:
+          items:
+            type: string
+          type: array
+          minItems: 1
+          title: Target Languages
+          description: 'Target locale codes. Use `GET /v2/languages/text` to list supported subtitle translation languages. Alias accepted: `languages`.'
+          examples:
+          - - es
+            - fr
+        format:
+          type: string
+          enum:
+          - srt
+          - vtt
+          title: Format
+          description: Preferred subtitle output format.
+          default: srt
+        reset:
+          type: boolean
+          title: Reset
+          description: Whether to prune existing subtitle target state before starting processing.
+          default: false
+        burn_subtitles:
+          type: boolean
+          title: Burn Subtitles
+          description: Whether to burn generated subtitles into media output when supported.
+          default: false
+        include_source_language:
+          type: boolean
+          title: Include Source Language
+          description: Whether to include source-language subtitles in generated outputs when supported.
+          default: false
+        word_count_per_line:
+          type: integer
+          exclusiveMinimum: 0
+          title: Word Count Per Line
+          description: Maximum subtitle words per line.
+          default: 7
+      type: object
+      required:
+      - target_languages
+      title: TranslateSubtitlesRequest
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    TranslationJobResponse:
+      properties:
+        workflow:
+          type: string
+          enum:
+          - translate_media
+          - translate_text
+          - translate_document
+          - translate_subtitles
+          - transcribe_media
+          - republish_media
+          title: Workflow
+          description: Translation workflow that was started.
+        status:
+          type: string
+          enum:
+          - queued
+          - started
+          - completed
+          - error
+          title: Status
+          description: Current workflow status.
+        job_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Job Id
+          description: Reusable registered job ID associated with this workflow.
+        target_languages:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Target Languages
+          description: Target locale codes requested for this workflow.
+        format:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Format
+          description: Requested output format when applicable.
+        message:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Message
+          description: Human-readable status message.
+        links:
+          additionalProperties:
+            type: string
+          type: object
+          title: Links
+          description: Related API links.
+      type: object
+      required:
+      - workflow
+      - status
+      title: TranslationJobResponse
+      examples:
+      - job_id: job_123
+        links:
+          job: /v2/jobs/job_123
+          status: /v2/jobs/job_123/status
+        message: Translation workflow started
+        status: started
+        target_languages:
+        - es
+        - fr
+        workflow: translate_media
+  securitySchemes:
+    APIKeyHeader:
+      in: header
+      name: X-API-Key
+      type: apiKey

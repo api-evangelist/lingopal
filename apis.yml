@@ -109,16 +109,16 @@ apis:
     url: errors/lingopal-problem-types.yml
   - type: DataModel
     url: data-model/lingopal-data-model.yml
-- aid: lingopal:lingopal-translate-api
-  name: Lingopal Translate API
-  description: Start media, document, subtitle, and text translation workflows.
+- aid: lingopal:lingopal-job-outputs-api
+  name: Lingopal Job Outputs API
+  description: Download transcripts, subtitles, and exported job outputs.
   humanURL: https://docs.lingopal.ai/
   baseURL: https://api.lingopal.ai
   tags:
-  - Translate
+  - Job Outputs
   properties:
   - type: OpenAPI
-    url: openapi/lingopal-translate-api-openapi.yml
+    url: openapi/lingopal-job-outputs-api-openapi.yml
   - type: Documentation
     url: https://docs.lingopal.ai/
   - type: APIReference
@@ -131,16 +131,82 @@ apis:
     url: errors/lingopal-problem-types.yml
   - type: DataModel
     url: data-model/lingopal-data-model.yml
-- aid: lingopal:lingopal-upload-api
-  name: Lingopal Upload API
-  description: Create storage uploads and register jobs for later use.
+- aid: lingopal:lingopal-job-registration-api
+  name: Lingopal Job Registration API
+  description: Upload or register source files as reusable jobs.
   humanURL: https://docs.lingopal.ai/
   baseURL: https://api.lingopal.ai
   tags:
-  - Upload
+  - Job Registration
   properties:
   - type: OpenAPI
-    url: openapi/lingopal-upload-api-openapi.yml
+    url: openapi/lingopal-job-registration-api-openapi.yml
+  - type: Documentation
+    url: https://docs.lingopal.ai/
+  - type: APIReference
+    url: https://docs.lingopal.ai/reference
+  - type: GettingStarted
+    url: https://docs.lingopal.ai/guides/getting-started
+  - type: Authentication
+    url: authentication/lingopal-authentication.yml
+  - type: ErrorCatalog
+    url: errors/lingopal-problem-types.yml
+  - type: DataModel
+    url: data-model/lingopal-data-model.yml
+- aid: lingopal:lingopal-job-workflows-api
+  name: Lingopal Job Workflows API
+  description: Start translation and subtitle workflows for registered jobs.
+  humanURL: https://docs.lingopal.ai/
+  baseURL: https://api.lingopal.ai
+  tags:
+  - Job Workflows
+  properties:
+  - type: OpenAPI
+    url: openapi/lingopal-job-workflows-api-openapi.yml
+  - type: Documentation
+    url: https://docs.lingopal.ai/
+  - type: APIReference
+    url: https://docs.lingopal.ai/reference
+  - type: GettingStarted
+    url: https://docs.lingopal.ai/guides/getting-started
+  - type: Authentication
+    url: authentication/lingopal-authentication.yml
+  - type: ErrorCatalog
+    url: errors/lingopal-problem-types.yml
+  - type: DataModel
+    url: data-model/lingopal-data-model.yml
+- aid: lingopal:lingopal-storage-api
+  name: Lingopal Storage API
+  description: Create and complete presigned storage uploads for source files.
+  humanURL: https://docs.lingopal.ai/
+  baseURL: https://api.lingopal.ai
+  tags:
+  - Storage
+  properties:
+  - type: OpenAPI
+    url: openapi/lingopal-storage-api-openapi.yml
+  - type: Documentation
+    url: https://docs.lingopal.ai/
+  - type: APIReference
+    url: https://docs.lingopal.ai/reference
+  - type: GettingStarted
+    url: https://docs.lingopal.ai/guides/getting-started
+  - type: Authentication
+    url: authentication/lingopal-authentication.yml
+  - type: ErrorCatalog
+    url: errors/lingopal-problem-types.yml
+  - type: DataModel
+    url: data-model/lingopal-data-model.yml
+- aid: lingopal:lingopal-text-translation-api
+  name: Lingopal Text Translation API
+  description: Translate text directly without creating a job.
+  humanURL: https://docs.lingopal.ai/
+  baseURL: https://api.lingopal.ai
+  tags:
+  - Text Translation
+  properties:
+  - type: OpenAPI
+    url: openapi/lingopal-text-translation-api-openapi.yml
   - type: Documentation
     url: https://docs.lingopal.ai/
   - type: APIReference

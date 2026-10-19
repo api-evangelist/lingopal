@@ -1,0 +1,294 @@
+openapi: 3.2.0
+info:
+  title: Lingopal API v2 Job Registration API
+  description: Lingopal v2 public API for text translation, storage uploads, registered jobs, job workflows, and job outputs.
+  version: v2
+servers:
+- url: https://api.lingopal.ai
+security:
+- APIKeyHeader: []
+tags:
+- name: Job Registration
+  description: Upload or register source files as reusable jobs.
+paths:
+  /v2/jobs/upload-and-register:
+    post:
+      tags:
+      - Job Registration
+      summary: Upload and register a small file
+      description: Uploads a small file directly to Lingopal and registers it as media or a document. For files larger than the direct upload limit, use `/v2/storage/uploads` multipart upload. Provide target languages and translation context later through the appropriate `/v2/jobs/{job_id}` workflow endpoint.
+      operationId: uploadAndRegisterJob
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_uploadAndRegisterJob'
+            examples:
+              directVideoJobUpload:
+                summary: Upload and register a small video file
+                description: Send the file bytes to Lingopal and receive a reusable job_id. Provide target languages later through the appropriate `/v2/jobs/{job_id}` workflow endpoint.
+                value:
+                  file: product-demo.mp4
+                  name: Product Demo
+                  media_type: video
+        required: true
+      responses:
+        '200':
+          description: Registration result for the uploaded file.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobRegistrationResponse'
+              example:
+                message: Job registration completed
+                registered_count: 1
+                error_count: 0
+                results:
+                - name: Product Demo
+                  source_url: https://cdn.example.com/uploads/product-demo.mp4
+                  status: registered
+                  job_id: job_123
+                  media_type: video
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: 'Authentication credentials were not provided, or the authenticated account is restricted (detail.code: ACCOUNT_RESTRICTED).'
+        '413':
+          description: File exceeds the direct upload limit.
+        '422':
+          description: Request validation error.
+      security:
+      - APIKeyHeader: []
+  /v2/jobs/register:
+    post:
+      tags:
+      - Job Registration
+      summary: Register jobs for later use
+      description: Registers one or more uploaded or externally hosted file URLs as Lingopal media/document records. This endpoint records source metadata only; processing inputs such as target languages and translation context are supplied later through the appropriate `/v2/jobs/{job_id}` workflow endpoint. Per-item failures are returned in the `results` array with `status="error"`.
+      operationId: registerJobs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobRegistrationRequest'
+            examples:
+              registerSingleFile:
+                summary: Register one uploaded source URL
+                description: Register a source_url from `/v2/storage/uploads` as a reusable Lingopal file. Use the returned job_id with `/v2/jobs/{job_id}/translations` or `/v2/jobs/{job_id}/subtitles` to start processing.
+                value:
+                  items:
+                  - source_url: https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/product-demo.mp4
+                    name: Product Demo
+                    media_type: video
+              registerMixedFileBatch:
+                summary: Register multiple uploaded sources
+                description: Register several already-uploaded sources in one request. Upload endpoints do not accept target languages or translation context; provide those to the appropriate `/v2/jobs/{job_id}` workflow endpoint.
+                value:
+                  items:
+                  - source_url: https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/product-demo.mp4
+                    name: Product Demo
+                    media_type: video
+                  - source_url: https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/interview.mp3
+                    name: Customer Interview
+                    media_type: audio
+                  - source_url: https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/brief.pdf
+                    name: Launch Brief
+                    media_type: document
+        required: true
+      responses:
+        '200':
+          description: Per-item registration results.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobRegistrationResponse'
+              example:
+                message: Job registration completed
+                registered_count: 1
+                error_count: 0
+                results:
+                - name: Product Demo
+                  source_url: https://cdn.example.com/uploads/product-demo.mp4
+                  status: registered
+                  job_id: job_123
+                  media_type: video
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: 'Authentication credentials were not provided, or the authenticated account is restricted (detail.code: ACCOUNT_RESTRICTED).'
+        '422':
+          description: Request validation error.
+      security:
+      - APIKeyHeader: []
+components:
+  schemas:
+    Body_uploadAndRegisterJob:
+      properties:
+        file:
+          type: string
+          format: binary
+          contentMediaType: application/octet-stream
+          title: File
+          description: Small source file to upload and register.
+          examples:
+          - product-demo.mp4
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+          description: Optional display name for the registered job.
+        media_type:
+          anyOf:
+          - type: string
+            enum:
+            - video
+            - audio
+            - document
+          - type: 'null'
+          title: Media Type
+          description: Optional source type hint. If omitted, Lingopal infers it from the file.
+      type: object
+      required:
+      - file
+      title: Body_uploadAndRegisterJob
+    JobRegistrationResponse:
+      properties:
+        message:
+          type: string
+          title: Message
+          description: Human-readable summary of the batch registration result.
+        registered_count:
+          type: integer
+          title: Registered Count
+          description: Number of items successfully registered.
+          examples:
+          - 1
+        error_count:
+          type: integer
+          title: Error Count
+          description: Number of items that failed registration.
+          examples:
+          - 0
+        results:
+          items:
+            $ref: '#/components/schemas/JobRegistrationResult'
+          type: array
+          title: Results
+          description: Per-item registration results.
+      type: object
+      required:
+      - message
+      - registered_count
+      - error_count
+      - results
+      title: JobRegistrationResponse
+      examples:
+      - error_count: 0
+        message: Job registration completed
+        registered_count: 1
+        results:
+        - job_id: job_123
+          media_type: video
+          name: Product Demo
+          source_url: https://cdn.example.com/uploads/product-demo.mp4
+          status: registered
+    JobRegistrationRequest:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/JobRegistrationItem'
+          type: array
+          maxItems: 100
+          minItems: 1
+          title: Items
+          description: One or more uploaded files to register.
+      type: object
+      required:
+      - items
+      title: JobRegistrationRequest
+    JobRegistrationResult:
+      properties:
+        name:
+          type: string
+          title: Name
+          description: Display name used for the registered item.
+        source_url:
+          type: string
+          title: Source Url
+          description: Source URL submitted for this item.
+        status:
+          type: string
+          enum:
+          - registered
+          - error
+          title: Status
+          description: Whether this item was registered or failed validation/registration.
+        job_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Job Id
+          description: Reusable registered job ID when registration succeeds.
+          examples:
+          - job_123
+        media_type:
+          anyOf:
+          - type: string
+            enum:
+            - video
+            - audio
+            - document
+          - type: 'null'
+          title: Media Type
+          description: Detected or supplied media type for the registered item.
+        error:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error
+          description: Per-item error message when `status` is `error`.
+      type: object
+      required:
+      - name
+      - source_url
+      - status
+      title: JobRegistrationResult
+    JobRegistrationItem:
+      properties:
+        source_url:
+          type: string
+          title: Source Url
+          description: Uploaded or externally hosted file URL to register as media or a document.
+          examples:
+          - https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+          description: Optional display name for the registered media/document.
+          examples:
+          - Product demo
+        media_type:
+          anyOf:
+          - type: string
+            enum:
+            - video
+            - audio
+            - document
+          - type: 'null'
+          title: Media Type
+          description: Optional media type hint. If omitted, Lingopal infers it from the file.
+          examples:
+          - video
+      additionalProperties: false
+      type: object
+      required:
+      - source_url
+      title: JobRegistrationItem
+  securitySchemes:
+    APIKeyHeader:
+      in: header
+      name: X-API-Key
+      type: apiKey

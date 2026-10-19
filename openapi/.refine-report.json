@@ -1,26 +1,24 @@
 {
   "provider": "lingopal",
   "sources": [
-    "_original/lingopal-openapi-original.json"
+    "_original/lingopal-openapi.json"
   ],
   "outputs": [
+    "lingopal-job-outputs-api-openapi.yml",
+    "lingopal-job-registration-api-openapi.yml",
+    "lingopal-job-workflows-api-openapi.yml",
     "lingopal-jobs-api-openapi.yml",
     "lingopal-languages-api-openapi.yml",
-    "lingopal-translate-api-openapi.yml",
-    "lingopal-upload-api-openapi.yml"
+    "lingopal-storage-api-openapi.yml",
+    "lingopal-text-translation-api-openapi.yml"
   ],
   "archived": [],
   "errors": [],
   "warnings": [],
   "notes": [
     "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
-    "lingopal-openapi-original.json: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
-    "apis.yml register: already-registered"
+    "lingopal-openapi.json: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
+    "apis.yml register: written (+5 apis, 7 total)"
   ],
-  "skipped": [
-    "lingopal-jobs-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "lingopal-languages-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "lingopal-translate-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "lingopal-upload-api-openapi.yml: previously refined output, superseded by openapi/_original/"
-  ]
+  "skipped": []
 }

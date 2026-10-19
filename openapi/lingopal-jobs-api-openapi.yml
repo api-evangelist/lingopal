@@ -1,16 +1,98 @@
 openapi: 3.2.0
 info:
   title: Lingopal API v2 Jobs API
-  description: Lingopal API for uploading media and documents, starting translation workflows, generating subtitles, translating text, and downloading generated artifacts.
+  description: Lingopal v2 public API for text translation, storage uploads, registered jobs, job workflows, and job outputs.
   version: v2
 servers:
-- url: https://vod-api.lingopal-dev.com
+- url: https://api.lingopal.ai
 security:
 - APIKeyHeader: []
 tags:
 - name: Jobs
-  description: Work with reusable registered jobs, their workflows, status, and outputs.
+  description: Inspect registered job metadata and processing status.
 paths:
+  /v2/jobs:
+    get:
+      tags:
+      - Jobs
+      summary: List registered jobs
+      description: Lists accessible, non-deleted jobs with filtering and sorting.
+      operationId: listJobs
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 50
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Offset
+      - name: job_type
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - enum:
+            - video
+            - audio
+            - document
+            type: string
+          - type: 'null'
+          title: Job Type
+      - name: q
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Q
+      - name: sort_by
+        in: query
+        required: false
+        schema:
+          enum:
+          - created_at
+          - updated_at
+          - name
+          type: string
+          default: created_at
+          title: Sort By
+      - name: sort_order
+        in: query
+        required: false
+        schema:
+          enum:
+          - asc
+          - desc
+          type: string
+          default: desc
+          title: Sort Order
+      responses:
+        '200':
+          description: Paginated registered jobs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobListResponse'
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: 'Authentication credentials were not provided, or the authenticated account is restricted (detail.code: ACCOUNT_RESTRICTED).'
+        '422':
+          description: Request validation error.
   /v2/jobs/{job_id}:
     get:
       tags:
@@ -26,9 +108,11 @@ paths:
         required: true
         schema:
           type: string
-          description: Reusable registered job ID.
+          description: Reusable registered job ID returned by `/v2/jobs/register` or `/v2/jobs/upload-and-register`.
+          examples:
+          - job_123
           title: Job Id
-        description: Reusable registered job ID.
+        description: Reusable registered job ID returned by `/v2/jobs/register` or `/v2/jobs/upload-and-register`.
       responses:
         '200':
           description: Registered job metadata.
@@ -36,6 +120,112 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JobResponse'
+              example:
+                job_id: job_123
+                name: Product Demo
+                job_type: video
+                source_url: https://cdn.example.com/uploads/product-demo.mp4
+                created_at: '2026-07-07T16:00:00Z'
+                updated_at: '2026-07-07T16:05:00Z'
+                links:
+                  self: /v2/jobs/job_123
+                  status: /v2/jobs/job_123/status
+                  translations: /v2/jobs/job_123/translations
+                  subtitles: /v2/jobs/job_123/subtitles
+        '404':
+          description: The requested resource was not found.
+          content:
+            application/json:
+              example:
+                detail: Job Not Found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - Jobs
+      summary: Update registered job
+      description: Updates the display name of an accessible registered job.
+      operationId: updateJob
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          description: Reusable registered job ID.
+          title: Job Id
+        description: Reusable registered job ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateJobRequest'
+      responses:
+        '200':
+          description: Updated registered job metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+              example:
+                job_id: job_123
+                name: Product Demo
+                job_type: video
+                source_url: https://cdn.example.com/uploads/product-demo.mp4
+                created_at: '2026-07-07T16:00:00Z'
+                updated_at: '2026-07-07T16:05:00Z'
+                links:
+                  self: /v2/jobs/job_123
+                  status: /v2/jobs/job_123/status
+                  translations: /v2/jobs/job_123/translations
+                  subtitles: /v2/jobs/job_123/subtitles
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: 'Authentication credentials were not provided, or the authenticated account is restricted (detail.code: ACCOUNT_RESTRICTED).'
+        '404':
+          description: The requested resource was not found.
+          content:
+            application/json:
+              example:
+                detail: Job Not Found
+        '422':
+          description: Request validation error.
+    delete:
+      tags:
+      - Jobs
+      summary: Delete registered job
+      description: Marks an accessible registered job as deleted and queues permanent cleanup.
+      operationId: deleteJob
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          description: Reusable registered job ID.
+          title: Job Id
+        description: Reusable registered job ID.
+      responses:
+        '202':
+          description: Job accepted for permanent cleanup.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteJobResponse'
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: 'Authentication credentials were not provided, or the authenticated account is restricted (detail.code: ACCOUNT_RESTRICTED).'
         '404':
           description: The requested resource was not found.
           content:
@@ -63,9 +253,11 @@ paths:
         required: true
         schema:
           type: string
-          description: Reusable registered job ID.
+          description: Reusable registered job ID returned by `/v2/jobs/register` or `/v2/jobs/upload-and-register`.
+          examples:
+          - job_123
           title: Job Id
-        description: Reusable registered job ID.
+        description: Reusable registered job ID returned by `/v2/jobs/register` or `/v2/jobs/upload-and-register`.
       responses:
         '200':
           description: Current job processing status.
@@ -73,6 +265,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JobStatusResponse'
+              example:
+                job_id: job_123
+                job_type: video
+                status: processing
+                stage: translating
+                sub_stage: dubbing
+                workflows:
+                  translation:
+                    status: processing
+                    languages:
+                    - target_language: es
+                      status: processing
+                    - target_language: fr
+                      status: queued
+                outputs:
+                  transcript: true
+                  subtitles: false
+                updated_at: '2026-07-07T16:10:00Z'
         '404':
           description: The requested resource was not found.
           content:
@@ -85,266 +295,60 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /v2/jobs/{job_id}/translations:
-    post:
-      tags:
-      - Jobs
-      summary: Translate a registered job
-      description: Starts translation for a reusable registered job. Video/audio files use the media translation workflow; document files use the document translation workflow.
-      operationId: translateJob
-      security:
-      - APIKeyHeader: []
-      parameters:
-      - name: job_id
-        in: path
-        required: true
-        schema:
-          type: string
-          description: Reusable registered job ID.
-          title: Job Id
-        description: Reusable registered job ID.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TranslateJobRequest'
-      responses:
-        '200':
-          description: Started job translation workflow.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TranslationJobResponse'
-        '401':
-          description: Missing or invalid authentication token.
-        '422':
-          description: Request validation error.
-  /v2/jobs/{job_id}/subtitles:
-    post:
-      tags:
-      - Jobs
-      summary: Generate subtitles for a registered job
-      description: Starts translated subtitle generation for a reusable registered media file.
-      operationId: generateJobSubtitles
-      security:
-      - APIKeyHeader: []
-      parameters:
-      - name: job_id
-        in: path
-        required: true
-        schema:
-          type: string
-          description: Reusable registered job ID.
-          title: Job Id
-        description: Reusable registered job ID.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TranslateSubtitlesRequest'
-      responses:
-        '200':
-          description: Started subtitle generation workflow.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TranslationJobResponse'
-        '401':
-          description: Missing or invalid authentication token.
-        '422':
-          description: Request validation error.
-  /v2/jobs/{job_id}/outputs/transcript:
-    get:
-      tags:
-      - Jobs
-      summary: Download job transcript
-      description: Downloads a transcript for a registered job as JSON, CSV, TSV, or plain text.
-      operationId: downloadJobTranscript
-      security:
-      - APIKeyHeader: []
-      parameters:
-      - name: job_id
-        in: path
-        required: true
-        schema:
-          type: string
-          description: Reusable registered job ID.
-          title: Job Id
-        description: Reusable registered job ID.
-      - name: locale
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          default: source
-          title: Locale
-      - name: layout
-        in: query
-        required: false
-        schema:
-          enum:
-          - compact
-          - detailed
-          type: string
-          default: compact
-          title: Layout
-      - name: file_format
-        in: query
-        required: false
-        schema:
-          enum:
-          - json
-          - csv
-          - tsv
-          - txt
-          type: string
-          default: txt
-          title: File Format
-      responses:
-        '200':
-          description: Transcript file content or JSON transcript payload.
-          content:
-            application/json:
-              schema: {}
-        '404':
-          description: The requested resource was not found.
-          content:
-            application/json:
-              example:
-                detail: Transcript Not Found
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-    post:
-      tags:
-      - Jobs
-      summary: Export job transcript with selected columns
-      description: Exports a transcript for a registered job with optional include/exclude controls.
-      operationId: exportJobTranscript
-      security:
-      - APIKeyHeader: []
-      parameters:
-      - name: job_id
-        in: path
-        required: true
-        schema:
-          type: string
-          description: Reusable registered job ID.
-          title: Job Id
-        description: Reusable registered job ID.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TranscriptDownloadRequest'
-      responses:
-        '200':
-          description: Transcript file content or JSON transcript payload.
-          content:
-            application/json:
-              schema: {}
-        '404':
-          description: The requested resource was not found.
-          content:
-            application/json:
-              example:
-                detail: Transcript Not Found
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /v2/jobs/{job_id}/outputs/subtitle:
-    get:
-      tags:
-      - Jobs
-      summary: Download job subtitle
-      description: Downloads generated subtitles for a registered job as SRT or VTT.
-      operationId: downloadJobSubtitle
-      security:
-      - APIKeyHeader: []
-      parameters:
-      - name: job_id
-        in: path
-        required: true
-        schema:
-          type: string
-          description: Reusable registered job ID.
-          title: Job Id
-        description: Reusable registered job ID.
-      - name: file_type
-        in: query
-        required: false
-        schema:
-          enum:
-          - srt
-          - vtt
-          type: string
-          default: srt
-          title: File Type
-      - name: locale
-        in: query
-        required: false
-        schema:
-          type: string
-          default: source
-          title: Locale
-      - name: line_length
-        in: query
-        required: false
-        schema:
-          type: integer
-          default: 7
-          title: Line Length
-      responses:
-        '200':
-          description: Subtitle file content.
-          content:
-            application/json:
-              schema: {}
-        '404':
-          description: The requested resource was not found.
-          content:
-            application/json:
-              example:
-                detail: Subtitle Not Found
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
-    JobWorkflowStatus:
+    DeleteJobResponse:
       properties:
+        job_id:
+          type: string
+          title: Job Id
         status:
           type: string
-          enum:
-          - queued
-          - processing
-          - completed
-          - failed
+          const: pending_purge
           title: Status
-          description: Current aggregate workflow status.
-        languages:
-          items:
-            $ref: '#/components/schemas/JobLanguageStatus'
-          type: array
-          title: Languages
+          default: pending_purge
       type: object
       required:
-      - status
-      title: JobWorkflowStatus
+      - job_id
+      title: DeleteJobResponse
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    UpdateJobRequest:
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Name
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      title: UpdateJobRequest
     JobLanguageStatus:
       properties:
         target_language:
@@ -365,6 +369,35 @@ components:
       - target_language
       - status
       title: JobLanguageStatus
+    JobWorkflowStatus:
+      properties:
+        status:
+          type: string
+          enum:
+          - queued
+          - processing
+          - completed
+          - failed
+          title: Status
+          description: Current aggregate workflow status.
+        languages:
+          items:
+            $ref: '#/components/schemas/JobLanguageStatus'
+          type: array
+          title: Languages
+      type: object
+      required:
+      - status
+      title: JobWorkflowStatus
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
     JobStatusResponse:
       properties:
         job_id:
@@ -407,6 +440,8 @@ components:
             enum:
             - translation
             - subtitles
+            - transcription
+            - republish
           type: object
           title: Workflows
           description: Current workflow statuses keyed by v2 workflow type.
@@ -435,6 +470,51 @@ components:
       - job_type
       - status
       title: JobStatusResponse
+      examples:
+      - job_id: job_123
+        job_type: video
+        outputs:
+          subtitle: false
+          transcript: true
+        stage: translating
+        status: processing
+        sub_stage: dubbing
+        updated_at: '2026-07-07T16:10:00Z'
+        workflows:
+          translation:
+            languages:
+            - status: processing
+              target_language: es
+            - status: queued
+              target_language: fr
+            status: processing
+    JobListResponse:
+      properties:
+        jobs:
+          items:
+            $ref: '#/components/schemas/JobResponse'
+          type: array
+          title: Jobs
+        total_count:
+          type: integer
+          minimum: 0
+          title: Total Count
+        limit:
+          type: integer
+          maximum: 100
+          minimum: 1
+          title: Limit
+        offset:
+          type: integer
+          minimum: 0
+          title: Offset
+      type: object
+      required:
+      - jobs
+      - total_count
+      - limit
+      - offset
+      title: JobListResponse
     JobResponse:
       properties:
         job_id:
@@ -485,263 +565,18 @@ components:
       - name
       - job_type
       title: JobResponse
-    ValidationError:
-      properties:
-        loc:
-          items:
-            anyOf:
-            - type: string
-            - type: integer
-          type: array
-          title: Location
-        msg:
-          type: string
-          title: Message
-        type:
-          type: string
-          title: Error Type
-        input:
-          title: Input
-        ctx:
-          type: object
-          title: Context
-      type: object
-      required:
-      - loc
-      - msg
-      - type
-      title: ValidationError
-    TranslateSubtitlesRequest:
-      properties:
-        target_languages:
-          items:
-            type: string
-          type: array
-          minItems: 1
-          title: Target Languages
-          description: 'Target locale codes. Use `GET /v2/languages/text` to list supported subtitle translation languages. Alias accepted: `languages`.'
-          examples:
-          - - es
-            - fr
-        format:
-          type: string
-          enum:
-          - srt
-          - vtt
-          title: Format
-          description: Preferred subtitle output format.
-          default: srt
-        reset:
-          type: boolean
-          title: Reset
-          description: Whether to prune existing subtitle target state before starting processing.
-          default: false
-        burn_subtitles:
-          type: boolean
-          title: Burn Subtitles
-          description: Whether to burn generated subtitles into media output when supported.
-          default: false
-        include_source_language:
-          type: boolean
-          title: Include Source Language
-          description: Whether to include source-language subtitles in generated outputs when supported.
-          default: false
-        word_count_per_line:
-          type: integer
-          exclusiveMinimum: 0
-          title: Word Count Per Line
-          description: Maximum subtitle words per line.
-          default: 7
-      type: object
-      required:
-      - target_languages
-      title: TranslateSubtitlesRequest
-    TranslateJobRequest:
-      properties:
-        target_languages:
-          items:
-            type: string
-          type: array
-          minItems: 1
-          title: Target Languages
-          description: 'Target locale codes. Alias accepted: `languages`. The job type determines whether media or document translation is started.'
-          examples:
-          - - es
-            - fr
-        context:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Context
-          description: Optional context used for document translation.
-        reset:
-          type: boolean
-          title: Reset
-          description: Whether to prune stale target languages before starting processing; active workflow progress is always refreshed for a new run.
-          default: true
-        remove_background_audio:
-          type: boolean
-          title: Remove Background Audio
-          description: Whether to remove background audio for media translation.
-          default: false
-        number_of_speakers:
-          type: integer
-          minimum: 0
-          title: Number Of Speakers
-          description: Optional speaker count hint for media translation. Use 0 to auto-detect.
-          default: 0
-        burn_subtitles_on_source:
-          type: boolean
-          title: Burn Subtitles On Source
-          description: Whether to burn generated subtitles onto source-language media.
-          default: false
-        prepend_ai_warning:
-          type: boolean
-          title: Prepend Ai Warning
-          description: Whether to prepend an AI-generated-content warning.
-          default: false
-        enhance:
-          type: boolean
-          title: Enhance
-          description: Whether to enable media enhancement when supported.
-          default: false
-        experimental_force_accent:
-          type: boolean
-          title: Experimental Force Accent
-          description: Whether to force accent handling for experimental workflows.
-          default: false
-      type: object
-      required:
-      - target_languages
-      title: TranslateJobRequest
-    TranscriptDownloadRequest:
-      properties:
-        locale:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Locale
-          description: Transcript locale to export. Use `source` for the original transcript.
-          default: source
-          examples:
-          - source
-          - es
-        layout:
-          type: string
-          enum:
-          - compact
-          - detailed
-          title: Layout
-          description: Transcript response layout for JSON-style exports.
-          default: compact
-        file_format:
-          type: string
-          enum:
-          - json
-          - csv
-          - tsv
-          - txt
-          title: File Format
-          description: Transcript download format.
-          default: txt
-        include_columns:
-          anyOf:
-          - items:
-              type: string
-              enum:
-              - speaker_id
-              - start_time
-              - end_time
-              - text
-              - gender
-              - emotion
-            type: array
-          - type: 'null'
-          title: Include Columns
-          description: Additional transcript columns to include in the export.
-        exclude_columns:
-          anyOf:
-          - items:
-              type: string
-              enum:
-              - speaker_id
-              - start_time
-              - end_time
-              - text
-              - gender
-              - emotion
-            type: array
-          - type: 'null'
-          title: Exclude Columns
-          description: Transcript columns to omit from the export.
-      type: object
-      title: TranscriptDownloadRequest
-    HTTPValidationError:
-      properties:
-        detail:
-          items:
-            $ref: '#/components/schemas/ValidationError'
-          type: array
-          title: Detail
-      type: object
-      title: HTTPValidationError
-    TranslationJobResponse:
-      properties:
-        workflow:
-          type: string
-          enum:
-          - translate_media
-          - translate_text
-          - translate_document
-          - translate_subtitles
-          title: Workflow
-          description: Translation workflow that was started.
-        status:
-          type: string
-          enum:
-          - queued
-          - started
-          - completed
-          - error
-          title: Status
-          description: Current workflow status.
-        job_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Job Id
-          description: Reusable registered job ID associated with this workflow.
-        target_languages:
-          anyOf:
-          - items:
-              type: string
-            type: array
-          - type: 'null'
-          title: Target Languages
-          description: Target locale codes requested for this workflow.
-        format:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Format
-          description: Requested output format when applicable.
-        message:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Message
-          description: Human-readable status message.
+      examples:
+      - created_at: '2026-07-07T16:00:00Z'
+        job_id: job_123
+        job_type: video
         links:
-          additionalProperties:
-            type: string
-          type: object
-          title: Links
-          description: Related API links.
-      type: object
-      required:
-      - workflow
-      - status
-      title: TranslationJobResponse
+          self: /v2/jobs/job_123
+          status: /v2/jobs/job_123/status
+          subtitles: /v2/jobs/job_123/subtitles
+          translations: /v2/jobs/job_123/translations
+        name: Product Demo
+        source_url: https://cdn.example.com/uploads/product-demo.mp4
+        updated_at: '2026-07-07T16:05:00Z'
   securitySchemes:
     APIKeyHeader:
       in: header

@@ -1,0 +1,484 @@
+openapi: 3.2.0
+info:
+  title: Lingopal API v2 Job Outputs API
+  description: Lingopal v2 public API for text translation, storage uploads, registered jobs, job workflows, and job outputs.
+  version: v2
+servers:
+- url: https://api.lingopal.ai
+security:
+- APIKeyHeader: []
+tags:
+- name: Job Outputs
+  description: Download transcripts, subtitles, and exported job outputs.
+paths:
+  /v2/jobs/{job_id}/outputs:
+    get:
+      tags:
+      - Job Outputs
+      summary: List available job outputs
+      description: Lists downloadable output types, locales, formats, and endpoints.
+      operationId: listJobOutputs
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          description: Reusable registered job ID.
+          title: Job Id
+        description: Reusable registered job ID.
+      responses:
+        '200':
+          description: Available job outputs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobOutputsResponse'
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: 'Authentication credentials were not provided, or the authenticated account is restricted (detail.code: ACCOUNT_RESTRICTED).'
+        '404':
+          description: The requested resource was not found.
+          content:
+            application/json:
+              example:
+                detail: Job Not Found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v2/jobs/{job_id}/outputs/transcript:
+    get:
+      tags:
+      - Job Outputs
+      summary: Download job transcript
+      description: Downloads a transcript for a registered job as JSON, CSV, TSV, or plain text.
+      operationId: downloadJobTranscript
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          description: Reusable registered job ID returned by `/v2/jobs/register` or `/v2/jobs/upload-and-register`.
+          examples:
+          - job_123
+          title: Job Id
+        description: Reusable registered job ID returned by `/v2/jobs/register` or `/v2/jobs/upload-and-register`.
+      - name: locale
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: source
+          title: Locale
+      - name: layout
+        in: query
+        required: false
+        schema:
+          enum:
+          - compact
+          - detailed
+          type: string
+          default: compact
+          title: Layout
+      - name: file_format
+        in: query
+        required: false
+        schema:
+          enum:
+          - json
+          - csv
+          - tsv
+          - txt
+          type: string
+          default: txt
+          title: File Format
+      responses:
+        '200':
+          description: Transcript file content or JSON transcript payload.
+          content:
+            application/json:
+              schema: {}
+              example:
+                job_id: job_123
+                locale: es
+                layout: detailed
+                columns:
+                - speaker_id
+                - start_time
+                - end_time
+                - text
+                line_count: 1
+                segments:
+                - speaker_id: speaker_1
+                  start_time: '0.00'
+                  end_time: '2.40'
+                  text: Bienvenido a Lingopal.
+            text/plain:
+              example: '[0.00 -> 2.40] : Bienvenido a Lingopal.'
+            text/csv:
+              example: 'speaker_id,start_time,end_time,text
+
+                speaker_1,0.00,2.40,Bienvenido a Lingopal.'
+            text/tab-separated-values:
+              example: "speaker_id\tstart_time\tend_time\ttext\nspeaker_1\t0.00\t2.40\tBienvenido a Lingopal."
+        '404':
+          description: The requested resource was not found.
+          content:
+            application/json:
+              example:
+                detail: Transcript Not Found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - Job Outputs
+      summary: Export job transcript with selected columns
+      description: Exports a transcript for a registered job with optional include/exclude controls.
+      operationId: exportJobTranscript
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          description: Reusable registered job ID returned by `/v2/jobs/register` or `/v2/jobs/upload-and-register`.
+          examples:
+          - job_123
+          title: Job Id
+        description: Reusable registered job ID returned by `/v2/jobs/register` or `/v2/jobs/upload-and-register`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranscriptDownloadRequest'
+            examples:
+              exportJobTranscriptJsonDetailed:
+                summary: Export detailed JSON transcript
+                description: Export a target-language transcript as JSON with speaker and timing columns.
+                value:
+                  locale: es
+                  layout: detailed
+                  file_format: json
+                  include_columns:
+                  - speaker_id
+                  - start_time
+                  - end_time
+                  - text
+              exportJobTranscriptCsvCompact:
+                summary: Export compact CSV transcript
+                description: Export the source transcript as CSV while omitting optional metadata columns.
+                value:
+                  locale: source
+                  layout: compact
+                  file_format: csv
+                  exclude_columns:
+                  - gender
+                  - emotion
+      responses:
+        '200':
+          description: Transcript file content or JSON transcript payload.
+          content:
+            application/json:
+              schema: {}
+              example:
+                job_id: job_123
+                locale: es
+                layout: detailed
+                columns:
+                - speaker_id
+                - start_time
+                - end_time
+                - text
+                line_count: 1
+                segments:
+                - speaker_id: speaker_1
+                  start_time: '0.00'
+                  end_time: '2.40'
+                  text: Bienvenido a Lingopal.
+            text/plain:
+              example: '[0.00 -> 2.40] : Bienvenido a Lingopal.'
+            text/csv:
+              example: 'speaker_id,start_time,end_time,text
+
+                speaker_1,0.00,2.40,Bienvenido a Lingopal.'
+            text/tab-separated-values:
+              example: "speaker_id\tstart_time\tend_time\ttext\nspeaker_1\t0.00\t2.40\tBienvenido a Lingopal."
+        '404':
+          description: The requested resource was not found.
+          content:
+            application/json:
+              example:
+                detail: Transcript Not Found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v2/jobs/{job_id}/outputs/subtitle:
+    get:
+      tags:
+      - Job Outputs
+      summary: Download job subtitle
+      description: Downloads generated subtitles for a registered job as SRT or VTT.
+      operationId: downloadJobSubtitle
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          description: Reusable registered job ID returned by `/v2/jobs/register` or `/v2/jobs/upload-and-register`.
+          examples:
+          - job_123
+          title: Job Id
+        description: Reusable registered job ID returned by `/v2/jobs/register` or `/v2/jobs/upload-and-register`.
+      - name: file_type
+        in: query
+        required: false
+        schema:
+          enum:
+          - srt
+          - vtt
+          type: string
+          default: srt
+          title: File Type
+      - name: locale
+        in: query
+        required: false
+        schema:
+          type: string
+          default: source
+          title: Locale
+      - name: line_length
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 7
+          title: Line Length
+      responses:
+        '200':
+          description: Subtitle file content.
+          content:
+            application/json:
+              schema: {}
+            application/x-subrip:
+              example: '1
+
+                00:00:00,000 --> 00:00:02,400
+
+                Bienvenido a Lingopal.
+
+                '
+            text/vtt:
+              example: 'WEBVTT
+
+
+                00:00:00.000 --> 00:00:02.400
+
+                Bienvenido a Lingopal.
+
+                '
+        '404':
+          description: The requested resource was not found.
+          content:
+            application/json:
+              example:
+                detail: Subtitle Not Found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    JobOutputsResponse:
+      properties:
+        job_id:
+          type: string
+          title: Job Id
+        outputs:
+          items:
+            $ref: '#/components/schemas/JobOutput'
+          type: array
+          title: Outputs
+      type: object
+      required:
+      - job_id
+      - outputs
+      title: JobOutputsResponse
+    JobOutput:
+      properties:
+        type:
+          type: string
+          enum:
+          - transcript
+          - subtitle
+          title: Type
+        locales:
+          items:
+            type: string
+          type: array
+          title: Locales
+        formats:
+          items:
+            type: string
+            enum:
+            - json
+            - csv
+            - tsv
+            - txt
+            - srt
+            - vtt
+          type: array
+          title: Formats
+        href:
+          type: string
+          title: Href
+      type: object
+      required:
+      - type
+      - locales
+      - formats
+      - href
+      title: JobOutput
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    TranscriptDownloadRequest:
+      properties:
+        locale:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Locale
+          description: Transcript locale to export. Use `source` for the original transcript.
+          default: source
+          examples:
+          - source
+          - es
+        layout:
+          type: string
+          enum:
+          - compact
+          - detailed
+          title: Layout
+          description: Transcript response layout for JSON-style exports.
+          default: compact
+          examples:
+          - compact
+          - detailed
+        file_format:
+          type: string
+          enum:
+          - json
+          - csv
+          - tsv
+          - txt
+          title: File Format
+          description: Transcript download format.
+          default: txt
+          examples:
+          - txt
+          - json
+          - csv
+          - tsv
+        include_columns:
+          anyOf:
+          - items:
+              type: string
+              enum:
+              - speaker_id
+              - start_time
+              - end_time
+              - text
+              - gender
+              - emotion
+            type: array
+          - type: 'null'
+          title: Include Columns
+          description: Additional transcript columns to include in the export.
+          examples:
+          - - speaker_id
+            - start_time
+            - end_time
+            - text
+        exclude_columns:
+          anyOf:
+          - items:
+              type: string
+              enum:
+              - speaker_id
+              - start_time
+              - end_time
+              - text
+              - gender
+              - emotion
+            type: array
+          - type: 'null'
+          title: Exclude Columns
+          description: Transcript columns to omit from the export.
+          examples:
+          - - gender
+            - emotion
+      type: object
+      title: TranscriptDownloadRequest
+  securitySchemes:
+    APIKeyHeader:
+      in: header
+      name: X-API-Key
+      type: apiKey

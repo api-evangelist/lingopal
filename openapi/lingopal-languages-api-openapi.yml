@@ -1,10 +1,10 @@
 openapi: 3.2.0
 info:
   title: Lingopal API v2 Languages API
-  description: Lingopal API for uploading media and documents, starting translation workflows, generating subtitles, translating text, and downloading generated artifacts.
+  description: Lingopal v2 public API for text translation, storage uploads, registered jobs, job workflows, and job outputs.
   version: v2
 servers:
-- url: https://vod-api.lingopal-dev.com
+- url: https://api.lingopal.ai
 security:
 - APIKeyHeader: []
 tags:
@@ -28,7 +28,13 @@ paths:
           - text
           - all
           type: string
+          description: 'Language capability filter: `dubbing` for media translation, `text` for text/document/subtitle workflows, or `all` for every supported language.'
+          examples:
+          - dubbing
+          - text
+          - all
           title: Language Type
+        description: 'Language capability filter: `dubbing` for media translation, `text` for text/document/subtitle workflows, or `all` for every supported language.'
       responses:
         '200':
           description: Supported language list with capability flags.
@@ -48,7 +54,42 @@ paths:
       - APIKeyHeader: []
 components:
   schemas:
-    app__views__v2__languages__schemas__LanguageInfo:
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    LanguageInfo:
       properties:
         locale:
           type: string
@@ -89,41 +130,6 @@ components:
       - text_support
       - language_id
       title: LanguageInfo
-    HTTPValidationError:
-      properties:
-        detail:
-          items:
-            $ref: '#/components/schemas/ValidationError'
-          type: array
-          title: Detail
-      type: object
-      title: HTTPValidationError
-    ValidationError:
-      properties:
-        loc:
-          items:
-            anyOf:
-            - type: string
-            - type: integer
-          type: array
-          title: Location
-        msg:
-          type: string
-          title: Message
-        type:
-          type: string
-          title: Error Type
-        input:
-          title: Input
-        ctx:
-          type: object
-          title: Context
-      type: object
-      required:
-      - loc
-      - msg
-      - type
-      title: ValidationError
     LanguageInfoResponse:
       properties:
         request_type:
@@ -140,7 +146,7 @@ components:
           description: Number of returned languages.
         languages:
           items:
-            $ref: '#/components/schemas/app__views__v2__languages__schemas__LanguageInfo'
+            $ref: '#/components/schemas/LanguageInfo'
           type: array
           title: Languages
           description: Supported languages and capability flags.
@@ -150,6 +156,16 @@ components:
       - count
       - languages
       title: LanguageInfoResponse
+      examples:
+      - count: 1
+        languages:
+        - dubbing_support: true
+          language: Spanish
+          language_id: 1
+          locale: es
+          text_support: true
+          voice_cloning_support: true
+        request_type: text
   securitySchemes:
     APIKeyHeader:
       in: header

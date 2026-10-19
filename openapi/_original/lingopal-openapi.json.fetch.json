@@ -1,0 +1,12 @@
+{
+ "url": "https://docs.lingopal.ai/openapi/v2.json",
+ "final": "https://docs.lingopal.ai/openapi/v2.json",
+ "status": 200,
+ "content_type": "application/json",
+ "bytes": 124766,
+ "sha256": "b0ccdae2a6458bd89aa742cbdffb7865e8c9f8845ac9d1d42ec8b10a7214fe3e",
+ "fetched_at": "2026-10-19",
+ "fetched_by": "APIEvangelist-Harvest/1.0 (+https://apievangelist.com)",
+ "match": "byte-identical",
+ "note": "re-archived: the provider's current document replaced a stale archive (roadmap#793); the old files are in openapi/_superseded/2026-10-19-stale"
+}

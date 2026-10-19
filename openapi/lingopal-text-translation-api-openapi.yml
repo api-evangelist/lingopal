@@ -1,0 +1,164 @@
+openapi: 3.2.0
+info:
+  title: Lingopal API v2 Text Translation API
+  description: Lingopal v2 public API for text translation, storage uploads, registered jobs, job workflows, and job outputs.
+  version: v2
+servers:
+- url: https://api.lingopal.ai
+security:
+- APIKeyHeader: []
+tags:
+- name: Text Translation
+  description: Translate text directly without creating a job.
+paths:
+  /v2/translate/text:
+    post:
+      tags:
+      - Text Translation
+      summary: Translate text
+      description: Translates one to 100 text inputs with a shared target language and optional context. Use `GET /v2/languages/text` to list supported languages.
+      operationId: translateText
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranslateTextRequest'
+            examples:
+              translateTextMinimal:
+                summary: Translate text minimal
+                description: Translate text with only the required text inputs and target language.
+                value:
+                  texts:
+                  - Hello world
+                  - Welcome to Lingopal
+                  target_language: es
+              translateTextWithOptions:
+                summary: Translate text options
+                description: Translate text with optional source language and context.
+                value:
+                  texts:
+                  - Hello world
+                  - Welcome to Lingopal
+                  source_language: en
+                  target_language: es
+                  context: Marketing landing page copy
+        required: true
+      responses:
+        '200':
+          description: Completed text translations.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextTranslationResponse'
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: 'Authentication credentials were not provided, or the authenticated account is restricted (detail.code: ACCOUNT_RESTRICTED).'
+        '422':
+          description: Request validation error.
+      security:
+      - APIKeyHeader: []
+components:
+  schemas:
+    TextTranslation:
+      properties:
+        source_text:
+          type: string
+          title: Source Text
+          description: Original source text.
+        translated_text:
+          type: string
+          title: Translated Text
+          description: Translated text.
+        target_language:
+          type: string
+          title: Target Language
+          description: Target locale code for this translation.
+      type: object
+      required:
+      - source_text
+      - translated_text
+      - target_language
+      title: TextTranslation
+    TranslateTextRequest:
+      properties:
+        texts:
+          items:
+            type: string
+            minLength: 1
+          type: array
+          maxItems: 100
+          minItems: 1
+          title: Texts
+          description: 'One to 100 source text inputs to translate. When context is provided, each input accepts at most 4000 characters. Across the request, the sum of every text plus the repeated context accepts at most 10000 characters. Aliases accepted: `text`, `content`.'
+          examples:
+          - - Hello world
+            - Welcome to Lingopal
+        target_language:
+          type: string
+          maxLength: 35
+          minLength: 2
+          pattern: ^[A-Za-z]{2,8}(?:[-_][A-Za-z0-9]{1,8})*$
+          title: Target Language
+          description: 'Single target locale code. Use `GET /v2/languages/text` to list supported text translation languages. Alias accepted: `language`.'
+          examples:
+          - es
+        source_language:
+          anyOf:
+          - type: string
+            maxLength: 35
+            minLength: 2
+            pattern: ^[A-Za-z]{2,8}(?:[-_][A-Za-z0-9]{1,8})*$
+          - type: 'null'
+          title: Source Language
+          description: Optional source locale code. Use `GET /v2/languages/text` to list supported text translation languages. If omitted, Lingopal may auto-detect it.
+          examples:
+          - en
+        context:
+          anyOf:
+          - type: string
+          - type: 'null'
+          maxLength: 8000
+          title: Context
+          description: Optional context to improve translation quality. Accepts at most 8000 characters.
+          examples:
+          - Marketing landing page copy
+      type: object
+      required:
+      - texts
+      - target_language
+      title: TranslateTextRequest
+    TextTranslationResponse:
+      properties:
+        workflow:
+          type: string
+          const: translate_text
+          title: Workflow
+          default: translate_text
+        status:
+          type: string
+          const: completed
+          title: Status
+          default: completed
+        translations:
+          items:
+            $ref: '#/components/schemas/TextTranslation'
+          type: array
+          title: Translations
+          description: Completed text translations.
+      type: object
+      required:
+      - translations
+      title: TextTranslationResponse
+      examples:
+      - status: completed
+        translations:
+        - source_text: Hello world
+          target_language: es
+          translated_text: Hola mundo
+        workflow: translate_text
+  securitySchemes:
+    APIKeyHeader:
+      in: header
+      name: X-API-Key
+      type: apiKey

@@ -1,0 +1,526 @@
+openapi: 3.2.0
+info:
+  title: Lingopal API v2 Storage API
+  description: Lingopal v2 public API for text translation, storage uploads, registered jobs, job workflows, and job outputs.
+  version: v2
+servers:
+- url: https://api.lingopal.ai
+security:
+- APIKeyHeader: []
+tags:
+- name: Storage
+  description: Create and complete presigned storage uploads for source files.
+paths:
+  /v2/storage/uploads:
+    post:
+      tags:
+      - Storage
+      summary: Create a presigned storage upload
+      description: Returns one or more presigned S3 upload URLs for uploading a source file before registering it with `/v2/jobs/register`. Provide `file_size` to request a multipart upload.
+      operationId: createStorageUpload
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StorageUploadRequest'
+            examples:
+              singlePartStorageUpload:
+                summary: Create a single-part upload URL
+                description: Request one presigned PUT URL for a client-managed source upload. Register the returned source_url later with `/v2/jobs/register`.
+                value:
+                  file_ext: mp4
+              multipartStorageUpload:
+                summary: Create multipart upload URLs
+                description: Request presigned part URLs for a large source upload. Complete the multipart upload with `/v2/storage/uploads/complete`, then register the returned source_url with `/v2/jobs/register`.
+                value:
+                  file_ext: mp4
+                  file_size: 524288000
+        required: true
+      responses:
+        '200':
+          description: Presigned upload metadata and upload part URLs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageUploadResponse'
+              example:
+                source_url: https://cdn.example.com/presigned_upload/user_123/source.mp4
+                file_path: presigned_upload/user_123/source.mp4
+                upload_id: 2~example-upload-id
+                upload_urls:
+                - part_number: 1
+                  upload_url: https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4?partNumber=1&X-Amz-Signature=...
+                method: PUT
+                headers:
+                  Content-Type: video/mp4
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: 'Authentication credentials were not provided, or the authenticated account is restricted (detail.code: ACCOUNT_RESTRICTED).'
+        '422':
+          description: Request validation error.
+      security:
+      - APIKeyHeader: []
+  /v2/storage/uploads/refresh:
+    post:
+      tags:
+      - Storage
+      summary: Refresh presigned URLs for a multipart storage upload
+      description: Returns fresh presigned upload URLs for specific parts of an in-progress multipart upload created by `/v2/storage/uploads`. Use this to resume an upload after part URLs expire instead of restarting the whole upload. Only uploads owned by the authenticated user can be refreshed.
+      operationId: refreshStorageUploadUrls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshStorageUploadRequest'
+        required: true
+      responses:
+        '200':
+          description: Fresh presigned upload URLs for the requested parts.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshStorageUploadResponse'
+              example:
+                upload_urls:
+                - part_number: 3
+                  upload_url: https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4?partNumber=3&X-Amz-Signature=...
+                method: PUT
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: The authenticated user cannot access this resource.
+        '422':
+          description: Request validation error.
+      security:
+      - APIKeyHeader: []
+  /v2/storage/uploads/parts:
+    post:
+      tags:
+      - Storage
+      summary: List parts of an in-progress multipart storage upload
+      description: Returns the parts of an in-progress multipart upload that S3 has confirmed, plus fresh presigned upload URLs for every part, so a client can resume an interrupted upload instead of restarting it. Only uploads owned by the authenticated user can be listed.
+      operationId: listStorageUploadParts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartsStorageUploadRequest'
+            examples:
+              listMultipartStorageUploadParts:
+                summary: Resume a multipart source upload
+                description: Look up which parts of an in-progress multipart upload S3 has confirmed and receive fresh presigned URLs for every part. Then register the returned source_url with `/v2/jobs/register` after completing the upload.
+                value:
+                  file_path: presigned_upload/user_123/source.mp4
+                  upload_id: 2~example-upload-id
+                  file_size: 524288000
+        required: true
+      responses:
+        '200':
+          description: Confirmed parts and fresh presigned upload URLs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartsStorageUploadResponse'
+              example:
+                parts:
+                - part_number: 1
+                  etag: '"9b2cf535f27731c974343645a3985328"'
+                  size: 134217728
+                upload_urls:
+                - part_number: 1
+                  upload_url: https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4?partNumber=1&X-Amz-Signature=...
+                - part_number: 2
+                  upload_url: https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4?partNumber=2&X-Amz-Signature=...
+                part_size_bytes: 134217728
+                source_url: https://cdn.example.com/presigned_upload/user_123/source.mp4
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: The authenticated user cannot access this resource.
+        '422':
+          description: Request validation error.
+      security:
+      - APIKeyHeader: []
+  /v2/storage/uploads/complete:
+    post:
+      tags:
+      - Storage
+      summary: Complete a multipart storage upload
+      description: Completes an S3 multipart upload created by `/v2/storage/uploads`. Only uploads owned by the authenticated user can be completed.
+      operationId: completeStorageUpload
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteStorageUploadRequest'
+            examples:
+              completeMultipartStorageUpload:
+                summary: Complete multipart source upload
+                description: Finalize a multipart upload after every part has been uploaded to S3. Then register the returned source_url with `/v2/jobs/register`.
+                value:
+                  file_path: presigned_upload/user_123/source.mp4
+                  upload_id: 2~example-upload-id
+                  etags:
+                  - part_number: 1
+                    etag: '"9b2cf535f27731c974343645a3985328"'
+                  - part_number: 2
+                    etag: '"2a1fd1f7bc39b3868d2a8f6fb50f6a7d"'
+        required: true
+      responses:
+        '200':
+          description: Completed storage upload location.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompleteStorageUploadResponse'
+              example:
+                file_path: presigned_upload/user_123/source.mp4
+                source_url: https://cdn.example.com/presigned_upload/user_123/source.mp4
+        '401':
+          description: Invalid authentication token.
+        '403':
+          description: The authenticated user cannot access this resource.
+        '422':
+          description: Request validation error.
+      security:
+      - APIKeyHeader: []
+components:
+  schemas:
+    CompletedUploadPart:
+      properties:
+        part_number:
+          type: integer
+          exclusiveMinimum: 0
+          title: Part Number
+          description: One-based part number returned by the storage upload response.
+          examples:
+          - 1
+        etag:
+          type: string
+          title: Etag
+          description: ETag returned by S3 after uploading this part.
+          examples:
+          - '"9b2cf535f27731c974343645a3985328"'
+      type: object
+      required:
+      - part_number
+      - etag
+      title: CompletedUploadPart
+    UploadPart:
+      properties:
+        part_number:
+          type: integer
+          title: Part Number
+          description: One-based multipart upload part number.
+          examples:
+          - 1
+        upload_url:
+          type: string
+          title: Upload Url
+          description: Presigned URL used to upload this part with the documented HTTP method.
+          examples:
+          - https://example-bucket.s3.amazonaws.com/presigned_upload/user/file.mp4?X-Amz-Signature=...
+      type: object
+      required:
+      - part_number
+      - upload_url
+      title: UploadPart
+    RefreshStorageUploadResponse:
+      properties:
+        upload_urls:
+          items:
+            $ref: '#/components/schemas/UploadPart'
+          type: array
+          title: Upload Urls
+          description: Fresh presigned upload URLs for the requested parts.
+        method:
+          type: string
+          const: PUT
+          title: Method
+          description: HTTP method clients must use for each presigned upload URL.
+          default: PUT
+      type: object
+      required:
+      - upload_urls
+      title: RefreshStorageUploadResponse
+      examples:
+      - method: PUT
+        upload_urls:
+        - part_number: 3
+          upload_url: https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4?partNumber=3&X-Amz-Signature=...
+    CompleteStorageUploadRequest:
+      properties:
+        file_path:
+          type: string
+          title: File Path
+          description: Storage path returned by `/v2/storage/uploads` for the multipart upload.
+          examples:
+          - presigned_upload/user_123/source.mp4
+        upload_id:
+          type: string
+          title: Upload Id
+          description: Multipart upload ID returned by `/v2/storage/uploads`.
+          examples:
+          - 2~example-upload-id
+        etags:
+          items:
+            anyOf:
+            - $ref: '#/components/schemas/CompletedUploadPart'
+            - type: string
+          type: array
+          minItems: 1
+          title: Etags
+          description: ETags for uploaded parts, ordered by part number. String ETags are accepted for compatibility.
+      type: object
+      required:
+      - file_path
+      - upload_id
+      - etags
+      title: CompleteStorageUploadRequest
+    PartsStorageUploadResponse:
+      properties:
+        parts:
+          items:
+            $ref: '#/components/schemas/StorageUploadPartStatus'
+          type: array
+          title: Parts
+          description: Parts S3 has confirmed for this upload, ordered by part number.
+        upload_urls:
+          items:
+            $ref: '#/components/schemas/UploadPart'
+          type: array
+          title: Upload Urls
+          description: Fresh presigned upload URLs for every part of the upload.
+        part_size_bytes:
+          type: integer
+          title: Part Size Bytes
+          description: Byte size clients must use when slicing multipart upload parts.
+          examples:
+          - 134217728
+        source_url:
+          type: string
+          title: Source Url
+          description: Final URL of the uploaded file after upload completion.
+          examples:
+          - https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4
+      type: object
+      required:
+      - parts
+      - upload_urls
+      - part_size_bytes
+      - source_url
+      title: PartsStorageUploadResponse
+      examples:
+      - part_size_bytes: 134217728
+        parts:
+        - etag: '"9b2cf535f27731c974343645a3985328"'
+          part_number: 1
+          size: 134217728
+        source_url: https://cdn.example.com/presigned_upload/user_123/source.mp4
+        upload_urls:
+        - part_number: 1
+          upload_url: https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4?partNumber=1&X-Amz-Signature=...
+        - part_number: 2
+          upload_url: https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4?partNumber=2&X-Amz-Signature=...
+    StorageUploadResponse:
+      properties:
+        source_url:
+          type: string
+          title: Source Url
+          description: Final URL of the uploaded file after upload completion.
+          examples:
+          - https://example-bucket.s3.amazonaws.com/presigned_upload/user/file.mp4
+        file_path:
+          type: string
+          title: File Path
+          description: Storage path for the storage upload. Use this when completing multipart uploads.
+          examples:
+          - presigned_upload/user_123/source.mp4
+        upload_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Upload Id
+          description: S3 multipart upload ID. Present only when the storage upload uses multipart upload.
+          examples:
+          - 2~example-upload-id
+        part_size_bytes:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Part Size Bytes
+          description: Byte size clients must use when slicing multipart upload parts.
+          examples:
+          - 134217728
+        upload_urls:
+          items:
+            $ref: '#/components/schemas/UploadPart'
+          type: array
+          title: Upload Urls
+          description: Presigned upload URLs, one per upload part.
+        method:
+          type: string
+          const: PUT
+          title: Method
+          description: HTTP method clients must use for each presigned upload URL.
+          default: PUT
+        headers:
+          additionalProperties:
+            type: string
+          type: object
+          title: Headers
+          description: Additional headers clients should send with the upload request.
+          examples:
+          - {}
+      type: object
+      required:
+      - source_url
+      - file_path
+      title: StorageUploadResponse
+      examples:
+      - file_path: presigned_upload/user_123/source.mp4
+        headers:
+          Content-Type: video/mp4
+        method: PUT
+        part_size_bytes: 134217728
+        source_url: https://cdn.example.com/presigned_upload/user_123/source.mp4
+        upload_id: 2~example-upload-id
+        upload_urls:
+        - part_number: 1
+          upload_url: https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4?partNumber=1&X-Amz-Signature=...
+    PartsStorageUploadRequest:
+      properties:
+        file_path:
+          type: string
+          title: File Path
+          description: Storage path returned by `/v2/storage/uploads` for the multipart upload.
+          examples:
+          - presigned_upload/user_123/source.mp4
+        upload_id:
+          type: string
+          title: Upload Id
+          description: Multipart upload ID returned by `/v2/storage/uploads`.
+          examples:
+          - 2~example-upload-id
+        file_size:
+          type: integer
+          exclusiveMinimum: 0
+          title: File Size
+          description: Total source file size in bytes, used to compute the total part count.
+          examples:
+          - 524288000
+      type: object
+      required:
+      - file_path
+      - upload_id
+      - file_size
+      title: PartsStorageUploadRequest
+    StorageUploadRequest:
+      properties:
+        file_ext:
+          type: string
+          minLength: 1
+          title: File Ext
+          description: Source file extension, with or without a leading dot.
+          examples:
+          - mp4
+          - wav
+          - pdf
+        file_size:
+          anyOf:
+          - type: integer
+            exclusiveMinimum: 0
+          - type: 'null'
+          title: File Size
+          description: Source file size in bytes. Provide this value to request multipart presigned upload URLs; omit it for a single PUT upload URL.
+          examples:
+          - 104857600
+      type: object
+      required:
+      - file_ext
+      title: StorageUploadRequest
+    RefreshStorageUploadRequest:
+      properties:
+        file_path:
+          type: string
+          title: File Path
+          description: Storage path returned by `/v2/storage/uploads` for the multipart upload.
+          examples:
+          - presigned_upload/user_123/source.mp4
+        upload_id:
+          type: string
+          title: Upload Id
+          description: Multipart upload ID returned by `/v2/storage/uploads`.
+          examples:
+          - 2~example-upload-id
+        part_numbers:
+          items:
+            type: integer
+          type: array
+          maxItems: 10000
+          minItems: 1
+          title: Part Numbers
+          description: One-based part numbers that need fresh presigned upload URLs.
+          examples:
+          - - 3
+            - 7
+      type: object
+      required:
+      - file_path
+      - upload_id
+      - part_numbers
+      title: RefreshStorageUploadRequest
+    CompleteStorageUploadResponse:
+      properties:
+        file_path:
+          type: string
+          title: File Path
+          description: Storage path for the completed storage upload.
+          examples:
+          - presigned_upload/user_123/source.mp4
+        source_url:
+          type: string
+          title: Source Url
+          description: Final URL of the completed uploaded file.
+          examples:
+          - https://example-bucket.s3.amazonaws.com/presigned_upload/user_123/source.mp4
+      type: object
+      required:
+      - file_path
+      - source_url
+      title: CompleteStorageUploadResponse
+      examples:
+      - file_path: presigned_upload/user_123/source.mp4
+        source_url: https://cdn.example.com/presigned_upload/user_123/source.mp4
+    StorageUploadPartStatus:
+      properties:
+        part_number:
+          type: integer
+          title: Part Number
+          description: One-based multipart upload part number.
+          examples:
+          - 1
+        etag:
+          type: string
+          title: Etag
+          description: ETag returned by S3 for the uploaded part.
+          examples:
+          - '"9b2cf535f27731c974343645a3985328"'
+        size:
+          type: integer
+          title: Size
+          description: Uploaded part size in bytes.
+          examples:
+          - 134217728
+      type: object
+      required:
+      - part_number
+      - etag
+      - size
+      title: StorageUploadPartStatus
+  securitySchemes:
+    APIKeyHeader:
+      in: header
+      name: X-API-Key
+      type: apiKey
